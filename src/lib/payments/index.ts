@@ -1,7 +1,7 @@
 import "server-only";
 import { PRICING } from "@/lib/pricing";
 import { brand } from "@/lib/brand";
-import { getStripe, stripeEnabled } from "./stripe";
+import { assertBypassAllowed, getStripe, stripeEnabled } from "./stripe";
 import {
   activateRetainer,
   createInterviewRequest,
@@ -14,7 +14,7 @@ import {
  * Checkout entry points. Each returns a URL to send the user to.
  *
  * TEST BYPASS MODE (no STRIPE_SECRET_KEY): the payment is recorded as a paid
- * `test_bypass` transaction and fulfilled immediately — every flow works
+ * `test_bypass` transaction and fulfilled immediately - every flow works
  * end-to-end without a Stripe account.
  *
  * LIVE MODE: a Stripe Checkout session is created (inline price_data, so no
@@ -32,6 +32,7 @@ function appUrl(path: string) {
 
 export async function startCreditPackCheckout(userId: string): Promise<string> {
   if (!stripeEnabled) {
+    assertBypassAllowed();
     const payment = await recordPayment({
       userId,
       kind: "credit_pack",
@@ -59,7 +60,7 @@ export async function startCreditPackCheckout(userId: string): Promise<string> {
           currency: PRICING.currency,
           unit_amount: PRICING.creditPack.amount,
           product_data: {
-            name: `${brand.name} — ${PRICING.creditPack.label}`,
+            name: `${brand.name} · ${PRICING.creditPack.label}`,
           },
         },
         quantity: 1,
@@ -85,6 +86,7 @@ export async function startInterviewCheckout(
   notes?: string
 ): Promise<string> {
   if (!stripeEnabled) {
+    assertBypassAllowed();
     const payment = await recordPayment({
       userId,
       kind: "interview_fee",
@@ -118,7 +120,7 @@ export async function startInterviewCheckout(
           currency: PRICING.currency,
           unit_amount: PRICING.interview.amount,
           product_data: {
-            name: `${brand.name} — ${PRICING.interview.label}`,
+            name: `${brand.name} · ${PRICING.interview.label}`,
           },
         },
         quantity: 1,
@@ -146,6 +148,7 @@ export async function startInterviewCheckout(
 
 export async function startRetainerCheckout(userId: string): Promise<string> {
   if (!stripeEnabled) {
+    assertBypassAllowed();
     await recordPayment({
       userId,
       kind: "retainer",
@@ -167,7 +170,7 @@ export async function startRetainerCheckout(userId: string): Promise<string> {
           unit_amount: PRICING.retainer.amount,
           recurring: { interval: PRICING.retainer.interval },
           product_data: {
-            name: `${brand.name} — ${PRICING.retainer.label}`,
+            name: `${brand.name} · ${PRICING.retainer.label}`,
           },
         },
         quantity: 1,
@@ -183,7 +186,7 @@ export async function startRetainerCheckout(userId: string): Promise<string> {
 }
 
 /**
- * Webhook fulfilment — called from /api/webhooks/stripe with a verified event.
+ * Webhook fulfilment - called from /api/webhooks/stripe with a verified event.
  */
 export async function handleStripeEvent(event: {
   type: string;
