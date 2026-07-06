@@ -51,7 +51,7 @@ export default async function ProInterviewsPage() {
       <Card className="mb-6 bg-sage-light border-sage">
         <p className="text-[14.5px] text-body">
           To protect everyone&apos;s privacy, we don&apos;t show client names or
-          contact details here — you&apos;ll see their notes about the care they
+          contact details here. You&apos;ll see their notes about the care they
           need, and our team coordinates introductions and scheduling once you
           accept.
         </p>
@@ -90,7 +90,7 @@ export default async function ProInterviewsPage() {
               )}
               {req.status === "accepted" && !req.scheduled_at && (
                 <p className="mt-3 text-[13.5px] text-muted">
-                  Accepted — our team will be in touch to arrange a time that
+                  Accepted. Our team will be in touch to arrange a time that
                   suits you both.
                 </p>
               )}

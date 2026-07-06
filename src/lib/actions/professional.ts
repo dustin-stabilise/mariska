@@ -17,7 +17,7 @@ import {
 
 export type ProActionState = { error?: string; success?: string };
 
-/** Auth for every mutation is re-derived server-side — never trusted from the client. */
+/** Auth for every mutation is re-derived server-side - never trusted from the client. */
 async function requireProfessional() {
   const supabase = await createClient();
   const {
@@ -170,7 +170,7 @@ export async function addDocumentRecord(input: {
 
   revalidatePath("/app/pro");
   revalidatePath("/app/pro/documents");
-  return { success: "Document uploaded — it's now waiting for review." };
+  return { success: "Document uploaded. It's now waiting for review." };
 }
 
 export async function deleteDocument(formData: FormData): Promise<void> {
@@ -253,7 +253,7 @@ export async function createReferral(
     if (error.code === "42501" || /policy/i.test(error.message)) {
       return {
         error:
-          "Referrals unlock once your own profile is active — finish your compliance checks first.",
+          "Referrals unlock once your own profile is active, so finish your compliance checks first.",
       };
     }
     return { error: error.message };
@@ -261,5 +261,5 @@ export async function createReferral(
 
   revalidatePath("/app/pro");
   revalidatePath("/app/pro/referrals");
-  return { success: "Invitation recorded — we'll track their progress for you." };
+  return { success: "Invitation recorded. We'll track their progress for you." };
 }

@@ -34,7 +34,7 @@ export default async function AdminFlagsPage() {
       <PageHeading
         eyebrow="Agency admin"
         title="Safeguarding"
-        intro="Open concerns first — resolve or dismiss each one, with the full history kept below."
+        intro="Open concerns first. Resolve or dismiss each one, with the full history kept below."
       />
 
       <h2 className="font-serif text-2xl text-ink mb-4">

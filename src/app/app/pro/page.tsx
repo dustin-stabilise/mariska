@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 function formatDate(iso: string | null): string {
-  if (!iso) return "—";
+  if (!iso) return "–";
   return new Date(iso).toLocaleDateString("en-GB", {
     day: "numeric",
     month: "short",
@@ -23,7 +23,7 @@ function formatDate(iso: string | null): string {
 }
 
 /** Time-sensitive derivations, kept out of render for purity. Fresh per
- * request — the page is force-dynamic. */
+ * request - the page is force-dynamic. */
 function deriveTimeSensitive(
   availabilityConfirmedAt: string,
   documents: { id: string; doc_type: DocumentType; title: string; expiry_date: string | null }[]
@@ -140,7 +140,7 @@ export default async function ProDashboard() {
             We&apos;re reviewing your application
           </h2>
           <p className="text-[15px] text-body mt-1">
-            Upload your documents to speed things up — the sooner your checks
+            Upload your documents to speed things up. The sooner your checks
             are complete, the sooner your profile goes live to families.
           </p>
           <Link
@@ -234,7 +234,7 @@ export default async function ProDashboard() {
                         : item.state === "in_review"
                           ? "In review"
                           : item.state === "rejected"
-                            ? "Rejected — re-upload needed"
+                            ? "Rejected: re-upload needed"
                             : "Not uploaded"}
                     </span>
                   </div>
@@ -258,7 +258,7 @@ export default async function ProDashboard() {
                   </span>
                 </div>
                 <p className="text-[13px] text-muted mt-0.5">
-                  A short video call with our team — we&apos;ll be in touch to
+                  A short video call with our team. We&apos;ll be in touch to
                   schedule it once your documents are in.
                 </p>
               </div>
@@ -285,7 +285,7 @@ export default async function ProDashboard() {
             </p>
             {availabilityStale && (
               <p className="text-[13px] text-[#7a6a3d] bg-tan/20 rounded-lg px-3 py-2 mt-3">
-                It&apos;s been more than a week — confirm now to stay visible.
+                It&apos;s been more than a week. Confirm now to stay visible.
               </p>
             )}
             <form action={confirmAvailability} className="mt-4">
@@ -295,8 +295,7 @@ export default async function ProDashboard() {
               Status:{" "}
               <span className="capitalize text-muted">
                 {pro.availability_status}
-              </span>{" "}
-              — change it on{" "}
+              </span>. Change it on{" "}
               <Link
                 href="/app/pro/profile"
                 className="text-green font-medium hover:text-green-dark"

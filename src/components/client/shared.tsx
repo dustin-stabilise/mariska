@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { Database } from "@/lib/supabase/database.types";
 
-/** Shared bits for the client area — labels, chips and status banners. */
+/** Shared bits for the client area - labels, chips and status banners. */
 
 export type InterviewStatus = Database["public"]["Enums"]["interview_status"];
 

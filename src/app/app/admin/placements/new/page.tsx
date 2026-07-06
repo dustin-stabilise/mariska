@@ -98,7 +98,7 @@ export default async function AdminNewPlacementPage({
               </option>
               {sortedPros.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {proNames.get(p.id) ?? "Unknown"} — {p.kind}
+                  {proNames.get(p.id) ?? "Unknown"} · {p.kind}
                   {p.location ? ` (${p.location})` : ""} ·{" "}
                   {formatGBP(PRICING.placement[p.kind].amount)}
                 </option>

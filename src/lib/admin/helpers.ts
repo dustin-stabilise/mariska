@@ -1,6 +1,6 @@
 /**
  * Small display helpers shared by the agency-admin pages.
- * Pure functions only — safe in server components.
+ * Pure functions only - safe in server components.
  */
 
 export type NamedProfile = {
@@ -23,7 +23,7 @@ export function nameMap(rows: NamedProfile[] | null | undefined): Map<string, st
 }
 
 export function formatDate(iso: string | null | undefined): string {
-  if (!iso) return "—";
+  if (!iso) return "–";
   return new Date(iso).toLocaleDateString("en-GB", {
     day: "numeric",
     month: "short",
@@ -32,7 +32,7 @@ export function formatDate(iso: string | null | undefined): string {
 }
 
 export function formatDateTime(iso: string | null | undefined): string {
-  if (!iso) return "—";
+  if (!iso) return "–";
   return new Date(iso).toLocaleString("en-GB", {
     day: "numeric",
     month: "short",

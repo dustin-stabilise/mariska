@@ -52,7 +52,7 @@ export default async function ProfessionalProfilePage({
           }
           body={
             card
-              ? `${card.headline ? `"${card.headline}" — ` : ""}unlock the full profile to see their bio, rates, compliance record and to request an interview. Unlocks last ${PRICING.unlockDurationDays} days.`
+              ? `${card.headline ? `"${card.headline}". ` : ""}Unlock the full profile to see their bio, rates, compliance record and to request an interview. Unlocks last ${PRICING.unlockDurationDays} days.`
               : "We couldn't find this profile, or your unlock has expired. Unlocking spends 1 credit and lasts 30 days."
           }
           action={
@@ -98,7 +98,7 @@ export default async function ProfessionalProfilePage({
   const firstName =
     profileRow?.first_name || card?.first_name || "This professional";
 
-  // Latest interview that's still "live" — cancelled/declined ones don't
+  // Latest interview that's still "live" - cancelled/declined ones don't
   // block a fresh request.
   const latestInterview = (interviews ?? [])[0];
   const activeInterview =

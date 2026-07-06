@@ -39,7 +39,7 @@ export default async function AdminClientsPage() {
       <PageHeading
         eyebrow="Agency admin"
         title="Clients"
-        intro="Families looking for care — their credit balances, unlocks and retainer status."
+        intro="Families looking for care: their credit balances, unlocks and retainer status."
       />
 
       {clients.length === 0 ? (
@@ -64,7 +64,7 @@ export default async function AdminClientsPage() {
                 return (
                   <tr key={c.id} className={trow}>
                     <td className={`${td} font-medium text-ink`}>{fullName(c)}</td>
-                    <td className={td}>{c.phone || "—"}</td>
+                    <td className={td}>{c.phone || "–"}</td>
                     <td className={`${td} whitespace-nowrap`}>{formatDate(c.created_at)}</td>
                     <td className={`${td} font-semibold text-ink`}>
                       {balances.get(c.id) ?? 0}

@@ -11,7 +11,7 @@ import { UploadForm } from "./upload-form";
 export const dynamic = "force-dynamic";
 
 function formatDate(iso: string | null): string {
-  if (!iso) return "—";
+  if (!iso) return "–";
   return new Date(iso).toLocaleDateString("en-GB", {
     day: "numeric",
     month: "short",
@@ -44,7 +44,7 @@ export default async function ProDocumentsPage() {
       <PageHeading
         eyebrow="Professional"
         title="Documents"
-        intro="Your compliance vault. Everything you upload is reviewed by our team — approvals update your compliance score automatically."
+        intro="Your compliance vault. Everything you upload is reviewed by our team, and approvals update your compliance score automatically."
       />
 
       <div className="grid lg:grid-cols-3 gap-6 items-start">
@@ -136,7 +136,7 @@ export default async function ProDocumentsPage() {
               ))}
             </ul>
             <p className="text-[13px] text-faint mt-4">
-              A vetting interview with our team is also required — we&apos;ll
+              A vetting interview with our team is also required. We&apos;ll
               arrange that with you directly once your documents are approved.
             </p>
           </Card>

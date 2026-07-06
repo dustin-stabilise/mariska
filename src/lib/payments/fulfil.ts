@@ -4,7 +4,7 @@ import { PRICING } from "@/lib/pricing";
 import type { Json } from "@/lib/supabase/database.types";
 
 /**
- * Fulfilment — the single place where a paid event turns into product state.
+ * Fulfilment - the single place where a paid event turns into product state.
  * Called from the test-bypass path immediately, or from the Stripe webhook
  * when live. All writes use the service role (these tables are service-only).
  */

@@ -113,7 +113,7 @@ export default async function AdminPlacementsPage() {
                         </form>
                       </span>
                     ) : (
-                      <span className="text-faint text-[13px]">—</span>
+                      <span className="text-faint text-[13px]">–</span>
                     )}
                   </td>
                 </tr>

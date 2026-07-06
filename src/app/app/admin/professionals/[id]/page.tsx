@@ -146,9 +146,9 @@ export default async function AdminProfessionalDetailPage({
           <Card>
             <h2 className="font-serif text-xl text-ink mb-4">Profile</h2>
             <dl className="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-[14.5px]">
-              <ProfileField label="Phone" value={person.phone || "—"} />
-              <ProfileField label="Location" value={pro.location || "—"} />
-              <ProfileField label="Region" value={pro.region || "—"} />
+              <ProfileField label="Phone" value={person.phone || "–"} />
+              <ProfileField label="Location" value={pro.location || "–"} />
+              <ProfileField label="Region" value={pro.region || "–"} />
               <ProfileField label="Experience" value={`${pro.years_experience} years`} />
               <ProfileField
                 label="Availability"
@@ -163,7 +163,7 @@ export default async function AdminProfessionalDetailPage({
                 value={
                   pro.care_categories.length
                     ? pro.care_categories.map(humanise).join(", ")
-                    : "—"
+                    : "–"
                 }
               />
             </dl>
@@ -501,7 +501,7 @@ function ComplianceRow({
             {expiryDays !== null && expiryDays <= 0 && " (expired)"}
           </span>
         ) : (
-          "—"
+          "–"
         )}
       </td>
     </tr>

@@ -12,7 +12,7 @@ export default function JoinPage() {
       </h1>
       <p className="text-muted text-[15px] mb-7">
         Apply in minutes. We&rsquo;ll verify your documents and interview you
-        before your profile goes live — you keep 100% of your rate.
+        before your profile goes live. You keep 100% of your rate.
       </p>
       <AuthForm
         action={signUpProfessional}

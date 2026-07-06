@@ -42,6 +42,9 @@ Project-specific (grow this list every time something breaks):
 
 - Every new Supabase table ships with RLS policies in the same migration.
 - The Stripe test bypass must be gated so it cannot activate in production.
+- **No em-dashes in public copy** (hard rule). Rewrite around them: split the
+  sentence, or use a comma, colon, or parentheses. En-dashes for ranges
+  (Mon–Fri) are fine. Enforce with `grep -rn "—" src/` → must be 0.
 
 ## Git
 

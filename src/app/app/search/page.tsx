@@ -176,7 +176,7 @@ export default async function SearchPage({
           title="No professionals match"
           body={
             hasFilters
-              ? "Try widening your filters — or clear them to browse everyone currently searchable."
+              ? "Try widening your filters, or clear them to browse everyone currently searchable."
               : "There are no searchable professionals right now. Please check back soon."
           }
           action={

@@ -76,7 +76,7 @@ export default function HomePage() {
             like <em className="italic text-green">{brand.name.toLowerCase()}</em>.
           </h1>
           <p className="mb-[34px] max-w-[480px] text-[19px] leading-[1.6] text-body">
-            Search fully-vetted private carers and nurses — and choose on more
+            Search fully-vetted private carers and nurses, and choose on more
             than availability: personality, interests and culture. The right
             person, not just an available one.
           </p>
@@ -121,8 +121,8 @@ export default function HomePage() {
               <span className="-ml-2 h-[30px] w-[30px] rounded-full border-2 border-card bg-green" />
             </div>
             <div className="text-[13.5px] leading-[1.45] text-body">
-              <strong className="text-ink">Found in days</strong>, not weeks —
-              search carers who genuinely fit your loved one.
+              <strong className="text-ink">Found in days</strong>, not weeks.
+              Search carers who genuinely fit your loved one.
             </div>
           </div>
         </div>
@@ -162,7 +162,7 @@ export default function HomePage() {
             </h3>
             <p className="text-[14.5px] leading-[1.55] text-muted">
               Enhanced DBS, identity, right-to-work, references and
-              qualifications — all verified before any profile goes live.
+              qualifications, all verified before any profile goes live.
             </p>
           </div>
           <div className="bg-card px-[26px] py-8">
@@ -173,7 +173,7 @@ export default function HomePage() {
               Flexible working
             </h3>
             <p className="text-[14.5px] leading-[1.55] text-muted">
-              Visiting, overnight or live-in — arranged around your routine.
+              Visiting, overnight or live-in, arranged around your routine.
               Carers choose work that suits their lives too.
             </p>
           </div>
@@ -188,7 +188,7 @@ export default function HomePage() {
             </h3>
             <p className="text-[14.5px] leading-[1.55] text-muted">
               Clear, pay-as-you-go fees explained upfront. You pay your carer
-              directly — often saving 30%+ versus managed agencies.
+              directly, often saving 30%+ versus managed agencies.
             </p>
           </div>
           <div className="bg-green px-[26px] py-8">
@@ -199,7 +199,7 @@ export default function HomePage() {
               Matched on what matters
             </h3>
             <p className="text-[14.5px] leading-[1.55] text-sage-light">
-              Search on shared interests, hobbies, language and culture — so it
+              Search on shared interests, hobbies, language and culture, so it
               feels like a friend, not a stranger.
             </p>
           </div>
@@ -215,7 +215,7 @@ export default function HomePage() {
               Continuity comes from connection
             </h2>
             <p className="mb-6 text-[16.5px] leading-[1.6] text-body">
-              The right carer isn&rsquo;t just qualified — they&rsquo;re
+              The right carer isn&rsquo;t just qualified. They&rsquo;re
               someone your loved one looks forward to seeing. Every full
               profile goes beyond the care plan to the person behind it, so you
               can choose on what really matters.
@@ -224,21 +224,21 @@ export default function HomePage() {
               <li className="flex items-start gap-[13px] text-[15.5px] text-[#3D4A45]">
                 <span className="text-[17px] leading-[1.4] text-green">✓</span>
                 <span>
-                  <strong>Shared interests &amp; hobbies</strong> — gardening,
+                  <strong>Shared interests &amp; hobbies</strong>: gardening,
                   music, faith, football, the same telly.
                 </span>
               </li>
               <li className="flex items-start gap-[13px] text-[15.5px] text-[#3D4A45]">
                 <span className="text-[17px] leading-[1.4] text-green">✓</span>
                 <span>
-                  <strong>Language &amp; culture</strong> — a carer who speaks
+                  <strong>Language &amp; culture</strong>: a carer who speaks
                   the same first language or shares heritage.
                 </span>
               </li>
               <li className="flex items-start gap-[13px] text-[15.5px] text-[#3D4A45]">
                 <span className="text-[17px] leading-[1.4] text-green">✓</span>
                 <span>
-                  <strong>Personality fit</strong> — quietly reassuring or warm
+                  <strong>Personality fit</strong>: quietly reassuring or warm
                   and chatty, whatever suits.
                 </span>
               </li>
@@ -344,7 +344,7 @@ export default function HomePage() {
             </h3>
             <p className="mb-[26px] text-[15.5px] leading-[1.6] text-sage-light">
               Create a free account, tell us about the person you care for, and
-              search vetted carers who fit — you stay in control, every step.
+              search vetted carers who fit. You stay in control, every step.
             </p>
             <Link
               href="/signup"
@@ -362,7 +362,7 @@ export default function HomePage() {
             </h3>
             <p className="mb-[26px] text-[15.5px] leading-[1.6] text-body">
               Choose your clients, set your rates and work flexibly. We
-              introduce you to private clients who value what you do — and we
+              introduce you to private clients who value what you do, and we
               never take a cut of your pay.
             </p>
             <Link
@@ -412,19 +412,19 @@ export default function HomePage() {
             <FaqItem
               defaultOpen
               question="Are your carers properly checked?"
-              answer={`Yes. Every carer completes enhanced DBS, identity and right-to-work checks, reference verification and a face-to-face interview before their profile goes live. We reject around 82% of applicants — only the best join ${brand.name}.`}
+              answer={`Yes. Every carer completes enhanced DBS, identity and right-to-work checks, reference verification and a face-to-face interview before their profile goes live. We reject around 82% of applicants. Only the best join ${brand.name}.`}
             />
             <FaqItem
               question={`How is ${brand.name} different from a managed care agency?`}
-              answer={`We’re an introductory platform. You search vetted, self-employed carers yourself, unlock the full profiles that stand out, interview through the platform, and engage the person who fits. Your carer works for you directly — you stay in control, build a direct relationship, and typically save 30% or more compared with a managed agency.`}
+              answer={`We’re an introductory platform. You search vetted, self-employed carers yourself, unlock the full profiles that stand out, interview through the platform, and engage the person who fits. Your carer works for you directly. You stay in control, build a direct relationship, and typically save 30% or more compared with a managed agency.`}
             />
             <FaqItem
-              question="What does it cost — and are there hidden fees?"
-              answer={`No hidden fees. Creating an account and browsing profile previews is free. Unlocking full profiles costs ${formatGBP(p.creditPack.amount)} for ${p.creditPack.credits} unlocks (each stays accessible for ${p.unlockDurationDays} days), an interview request is ${formatGBP(p.interview.amount)}, and there’s a one-off introduction fee when you engage someone — ${formatGBP(p.placement.carer.amount)} for a carer, ${formatGBP(p.placement.nurse.amount)} for a nurse. After that you pay your carer directly, and they keep 100% of their rate. An optional ${formatGBP(p.retainer.amount)}/month retainer adds ${p.retainer.includedCredits} extra unlocks, replacement-search help and priority support.`}
+              question="What does it cost, and are there hidden fees?"
+              answer={`No hidden fees. Creating an account and browsing profile previews is free. Unlocking full profiles costs ${formatGBP(p.creditPack.amount)} for ${p.creditPack.credits} unlocks (each stays accessible for ${p.unlockDurationDays} days), an interview request is ${formatGBP(p.interview.amount)}, and there’s a one-off introduction fee when you engage someone: ${formatGBP(p.placement.carer.amount)} for a carer, ${formatGBP(p.placement.nurse.amount)} for a nurse. After that you pay your carer directly, and they keep 100% of their rate. An optional ${formatGBP(p.retainer.amount)}/month retainer adds ${p.retainer.includedCredits} extra unlocks, replacement-search help and priority support.`}
             />
             <FaqItem
               question="What does ‘matched on what matters’ actually mean?"
-              answer="Full profiles go beyond qualifications to personality, shared interests, hobbies, language and culture — alongside references, verification status and a video introduction. Choosing someone who shares your loved one’s background or passions builds trust faster — which is why 94% of our clients stay with their first match."
+              answer="Full profiles go beyond qualifications to personality, shared interests, hobbies, language and culture, alongside references, verification status and a video introduction. Choosing someone who shares your loved one’s background or passions builds trust faster, which is why 94% of our clients stay with their first match."
             />
           </div>
         </div>
@@ -441,7 +441,7 @@ export default function HomePage() {
             </h2>
             <p className="mx-auto mb-[34px] max-w-[520px] text-[17px] leading-[1.6] text-sage">
               Create a free account and start searching vetted carer and nurse
-              profiles today — no pressure, no obligation, and our team a phone
+              profiles today. No pressure, no obligation, and our team a phone
               call away.
             </p>
             <div className="flex flex-wrap justify-center gap-[14px]">

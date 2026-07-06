@@ -48,7 +48,7 @@ export default async function AdminInterviewsPage({
       <PageHeading
         eyebrow="Agency admin"
         title="Interviews"
-        intro="Every client interview request — schedule accepted ones, mark scheduled ones complete, then record the placement."
+        intro="Every client interview request. Schedule accepted ones, mark scheduled ones complete, then record the placement."
       />
 
       <div className="flex flex-wrap gap-2 mb-6">
@@ -155,7 +155,7 @@ export default async function AdminInterviewsPage({
                       </Link>
                     )}
                     {["requested", "declined", "cancelled"].includes(i.status) && (
-                      <span className="text-faint text-[13px]">—</span>
+                      <span className="text-faint text-[13px]">–</span>
                     )}
                   </td>
                 </tr>

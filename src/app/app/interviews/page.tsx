@@ -12,15 +12,15 @@ import {
 const BANNERS: Record<string, { tone: "success" | "warn"; text: string }> = {
   "test-requested": {
     tone: "success",
-    text: "Interview request created — payment was completed via the test bypass.",
+    text: "Interview request created. Payment was completed via the test bypass.",
   },
   success: {
     tone: "success",
-    text: "Payment received — your interview request has been sent.",
+    text: "Payment received. Your interview request has been sent.",
   },
   cancelled: {
     tone: "warn",
-    text: "Checkout was cancelled — no interview request was made and you haven't been charged.",
+    text: "Checkout was cancelled. No interview request was made and you haven't been charged.",
   },
 };
 

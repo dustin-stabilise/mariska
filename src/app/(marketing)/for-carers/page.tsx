@@ -5,7 +5,7 @@ import { PRICING, formatGBP } from "@/lib/pricing";
 
 export const metadata: Metadata = {
   title: "For carers & nurses",
-  description: `Join ${brand.name} — free registration, set your own rates, keep 100% of your pay and choose the clients you work with.`,
+  description: `Join ${brand.name}: free registration, set your own rates, keep 100% of your pay and choose the clients you work with.`,
 };
 
 const HATCH_14 =
@@ -68,7 +68,7 @@ export default function ForCarersPage() {
           <p className="mb-8 max-w-[480px] text-[19px] leading-[1.6] text-body">
             Choose your clients, set your own rates and work flexibly around
             your life. Registration is free, private clients find and engage
-            you directly — and we never take a penny of your pay.
+            you directly, and we never take a penny of your pay.
           </p>
           <div className="mb-8 flex flex-wrap gap-[14px]">
             <Link
@@ -108,7 +108,7 @@ export default function ForCarersPage() {
               £0
             </div>
             <div className="mt-[6px] text-[13.5px] leading-[1.45] text-sage-light">
-              taken from your hourly pay — you&rsquo;re paid directly by your
+              taken from your hourly pay. You&rsquo;re paid directly by your
               client.
             </div>
           </div>
@@ -128,7 +128,7 @@ export default function ForCarersPage() {
         <div className="grid grid-cols-1 gap-[18px] sm:grid-cols-2 lg:grid-cols-3">
           <BenefitCard title="Set your own rates">
             You decide what your skills and experience are worth. Clients pay
-            you directly — we never take a cut.
+            you directly, and we never take a cut.
           </BenefitCard>
           <BenefitCard title="Choose your clients">
             Pick the people, the type of care and the hours that suit you.
@@ -136,11 +136,11 @@ export default function ForCarersPage() {
           </BenefitCard>
           <BenefitCard title="Genuinely flexible">
             Visiting, overnight or live-in. Work full weeks or fit care around
-            family — it&rsquo;s your schedule.
+            family. It&rsquo;s your schedule.
           </BenefitCard>
           <BenefitCard title="Chosen, not assigned">
-            Clients find you for your interests, values and personality — not
-            just your availability — so the work feels meaningful.
+            Clients find you for your interests, values and personality (not
+            just your availability), so the work feels meaningful.
           </BenefitCard>
           <BenefitCard title="Real support behind you">
             A dedicated team on the phone, help arranging holiday cover, and a

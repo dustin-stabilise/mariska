@@ -29,7 +29,7 @@ export default async function proxy(request: NextRequest) {
     }
   );
 
-  // Do not run code between createServerClient and getClaims() — a session
+  // Do not run code between createServerClient and getClaims() - a session
   // refresh can otherwise be dropped.
   const { data } = await supabase.auth.getClaims();
 

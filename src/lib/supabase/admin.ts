@@ -3,7 +3,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./database.types";
 
 /**
- * Service-role client — bypasses RLS. Server only, never import in client code.
+ * Service-role client - bypasses RLS. Server only, never import in client code.
  * Used by webhooks, the payments layer and admin/compliance jobs.
  */
 export function createAdminClient() {

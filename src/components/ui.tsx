@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 /**
- * Tiny shared UI kit for the authenticated app — keeps the Kindred design
+ * Tiny shared UI kit for the authenticated app - keeps the Kindred design
  * language (cream canvas, card surfaces, Spectral headings) consistent
  * across client, professional and admin areas.
  */

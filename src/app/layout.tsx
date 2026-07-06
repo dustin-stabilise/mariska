@@ -16,8 +16,8 @@ const hanken = Hanken_Grotesk({
 
 export const metadata: Metadata = {
   title: {
-    default: `${brand.name} — vetted private carers & nurses, matched with care`,
-    template: `%s — ${brand.name}`,
+    default: `${brand.name} | vetted private carers & nurses, matched with care`,
+    template: `%s | ${brand.name}`,
   },
   description: brand.description,
 };

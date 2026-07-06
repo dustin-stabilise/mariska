@@ -28,7 +28,7 @@ export default async function ProProfilePage() {
       <PageHeading
         eyebrow="Professional"
         title="My profile"
-        intro="This is what families see when they find you in search — keep it warm, specific and up to date."
+        intro="This is what families see when they find you in search, so keep it warm, specific and up to date."
       />
       <ProfileForm
         pro={{

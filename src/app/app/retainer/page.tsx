@@ -11,15 +11,15 @@ const BANNERS: Record<
 > = {
   "test-subscribed": {
     tone: "success",
-    text: "Retainer activated — payment was completed via the test bypass.",
+    text: "Retainer activated. Payment was completed via the test bypass.",
   },
   success: {
     tone: "success",
-    text: "Payment received — your retainer is now active.",
+    text: "Payment received. Your retainer is now active.",
   },
   cancelled: {
     tone: "warn",
-    text: "Checkout was cancelled — you haven't been charged and no retainer was started.",
+    text: "Checkout was cancelled. You haven't been charged and no retainer was started.",
   },
 };
 
@@ -36,7 +36,7 @@ const BENEFITS = [
   {
     title: "Priority support",
     detail:
-      "Jump the queue — a dedicated coordinator answers your questions first.",
+      "Jump the queue: a dedicated coordinator answers your questions first.",
   },
   {
     title: "Ongoing care reviews",
@@ -71,7 +71,7 @@ export default async function RetainerPage({
       <PageHeading
         eyebrow="Ongoing support"
         title="Support retainer"
-        intro={`Continuous support for your care arrangement — ${formatGBP(PRICING.retainer.amount)} a month, cancel any time.`}
+        intro={`Continuous support for your care arrangement. ${formatGBP(PRICING.retainer.amount)} a month, cancel any time.`}
       />
 
       {banner && <Banner tone={banner.tone}>{banner.text}</Banner>}
@@ -108,7 +108,7 @@ export default async function RetainerPage({
               {subscription!.status === "past_due" && (
                 <p className="text-[14px] text-red-700 mt-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
                   Your last payment didn&apos;t go through. Please update your
-                  payment details to keep your benefits — or contact support if
+                  payment details to keep your benefits, or contact support if
                   you need a hand.
                 </p>
               )}
@@ -165,7 +165,7 @@ export default async function RetainerPage({
                 Ongoing support, long after the introduction
               </h2>
               <p className="text-muted text-[15px] mt-2 max-w-xl">
-                Care needs change. The retainer keeps us by your side — with
+                Care needs change. The retainer keeps us by your side, with
                 fresh unlocks each month, replacement searches when things
                 don&apos;t work out, and a coordinator who knows your situation.
               </p>
@@ -215,7 +215,7 @@ export default async function RetainerPage({
                   {subscription?.status === "cancelled"
                     ? "Restart retainer"
                     : "Subscribe"}{" "}
-                  — {formatGBP(PRICING.retainer.amount)}/mo
+                  for {formatGBP(PRICING.retainer.amount)}/mo
                 </button>
               </form>
               <p className="text-[12.5px] text-faint mt-3 text-center">

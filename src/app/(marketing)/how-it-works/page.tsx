@@ -5,7 +5,7 @@ import { PRICING, formatGBP } from "@/lib/pricing";
 
 export const metadata: Metadata = {
   title: "How it works",
-  description: `How ${brand.name} works for families — search vetted carers and nurses, unlock full profiles, interview through the platform and engage directly.`,
+  description: `How ${brand.name} works for families: search vetted carers and nurses, unlock full profiles, interview through the platform and engage directly.`,
 };
 
 const HATCH_12 =
@@ -40,7 +40,7 @@ export default function HowItWorksPage() {
           Finding the right carer, made simple
         </h1>
         <p className="mx-auto max-w-[620px] text-[19px] leading-[1.6] text-body">
-          Four clear steps from a free account to the moment care begins — with
+          Four clear steps from a free account to the moment care begins, with
           you in control the whole way through.
         </p>
       </section>
@@ -58,8 +58,8 @@ export default function HowItWorksPage() {
               </h3>
               <p className="text-[15.5px] leading-[1.6] text-muted">
                 Create a free account and tell us about the care you&rsquo;re
-                looking for. Then search vetted carers and nurses near you —
-                previews show first name, location, years of experience, care
+                looking for. Then search vetted carers and nurses near you.
+                Previews show first name, location, years of experience, care
                 type and availability.
               </p>
             </div>
@@ -81,7 +81,7 @@ export default function HowItWorksPage() {
                 Unlock full profiles
               </h3>
               <p className="text-[15.5px] leading-[1.6] text-muted">
-                Buy credits to unlock the profiles that stand out —{" "}
+                Buy credits to unlock the profiles that stand out:{" "}
                 {formatGBP(p.creditPack.amount)} for {p.creditPack.credits}{" "}
                 unlocks. See full qualifications, references, verification
                 status and a video introduction. Unlocked profiles stay
@@ -107,7 +107,7 @@ export default function HowItWorksPage() {
               </h3>
               <p className="text-[15.5px] leading-[1.6] text-muted">
                 Request an interview for {formatGBP(p.interview.amount)} and
-                we&rsquo;ll coordinate it through the platform — by video or in
+                we&rsquo;ll coordinate it through the platform, by video or in
                 person. No contact details are shared before you engage, so
                 everyone stays protected. There&rsquo;s never any pressure, and
                 you can meet more than one.
@@ -129,9 +129,9 @@ export default function HowItWorksPage() {
                 Engage directly
               </h3>
               <p className="text-[15.5px] leading-[1.6] text-sage-light">
-                Found the right person? Pay a one-off introduction fee —{" "}
+                Found the right person? Pay a one-off introduction fee (
                 {formatGBP(p.placement.carer.amount)} for a carer,{" "}
-                {formatGBP(p.placement.nurse.amount)} for a nurse — then you
+                {formatGBP(p.placement.nurse.amount)} for a nurse), then you
                 contract with and pay your carer directly. An optional{" "}
                 {formatGBP(p.retainer.amount)}/month support retainer adds
                 extra unlocks, replacement search help and priority support.
@@ -194,7 +194,7 @@ export default function HowItWorksPage() {
               Because you pay your carer directly and they keep 100% of their
               rate, introductory care typically costs 30% or more less than a
               managed agency. Every fee is fixed, pay-as-you-go and explained
-              upfront — no surprises on the invoice.
+              upfront. No surprises on the invoice.
             </p>
             <ul className="flex list-none flex-col gap-[13px]">
               <li className="flex gap-3 text-[15.5px] text-[#3D4A45]">
@@ -218,7 +218,7 @@ export default function HowItWorksPage() {
               </li>
               <li className="flex gap-3 text-[15.5px] text-[#3D4A45]">
                 <span className="text-[17px] text-green">✓</span>No
-                finder&rsquo;s fees, no markup on care hours — carers keep 100%
+                finder&rsquo;s fees, no markup on care hours: carers keep 100%
                 of their rate
               </li>
             </ul>
@@ -245,8 +245,8 @@ export default function HowItWorksPage() {
             Ready to start?
           </h2>
           <p className="mx-auto mb-8 max-w-[500px] text-[17px] leading-[1.6] text-body">
-            Create your free account and start searching vetted carers today —
-            no obligation, and we&rsquo;re a phone call away if you&rsquo;d
+            Create your free account and start searching vetted carers today.
+            No obligation, and we&rsquo;re a phone call away if you&rsquo;d
             like a hand.
           </p>
           <div className="flex flex-wrap justify-center gap-[14px]">

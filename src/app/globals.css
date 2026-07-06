@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Brand tokens — mirror of src/lib/brand.ts colours. */
+/* Brand tokens: mirror of src/lib/brand.ts colours. */
 :root {
   --green: #3f5e54;
   --green-dark: #335047;

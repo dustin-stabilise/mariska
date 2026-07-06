@@ -66,7 +66,7 @@ export default async function ProReferralsPage() {
       <PageHeading
         eyebrow="Professional"
         title="Refer & earn"
-        intro="Know a great carer or nurse? Invite them — you're paid once they complete registration and their compliance checks."
+        intro="Know a great carer or nurse? Invite them. You're paid once they complete registration and their compliance checks."
         actions={
           earned > 0 ? (
             <span className="text-[15px] text-muted">
@@ -95,7 +95,7 @@ export default async function ProReferralsPage() {
           {referrals.length === 0 ? (
             <EmptyState
               title="No referrals yet"
-              body="Invite someone you've worked with and trust. We'll track their progress here — from invited, to registered, to compliant, to paid."
+              body="Invite someone you've worked with and trust. We'll track their progress here, from invited, to registered, to compliant, to paid."
             />
           ) : (
             <Card className="p-0 overflow-hidden">
@@ -131,7 +131,7 @@ export default async function ProReferralsPage() {
                               {formatGBP(r.reward_amount)}
                             </span>
                           ) : (
-                            <span className="text-faint">—</span>
+                            <span className="text-faint">–</span>
                           )}
                         </td>
                       </tr>
@@ -148,8 +148,8 @@ export default async function ProReferralsPage() {
           {!isActive && (
             <Card className="bg-sage-light border-sage">
               <p className="text-[14px] text-body">
-                Referrals unlock once your own profile is active — finish your
-                document checks and vetting interview first.
+                Referrals unlock once your own profile is active, so finish
+                your document checks and vetting interview first.
               </p>
             </Card>
           )}

@@ -95,7 +95,7 @@ export default async function AdminProfessionalsPage({
                     </Link>
                   </td>
                   <td className={`${td} capitalize`}>{pro.kind}</td>
-                  <td className={td}>{pro.location || "—"}</td>
+                  <td className={td}>{pro.location || "–"}</td>
                   <td className={td}>
                     <span className={statusPillClass(pro.status)}>
                       {humanise(pro.status)}
@@ -111,7 +111,7 @@ export default async function AdminProfessionalsPage({
                   </td>
                   <td className={td}>
                     <TierBadge tier={pro.tier} />
-                    {pro.tier === "none" && <span className="text-faint">—</span>}
+                    {pro.tier === "none" && <span className="text-faint">–</span>}
                   </td>
                   <td className={`${td} whitespace-nowrap`}>{formatDate(pro.created_at)}</td>
                 </tr>

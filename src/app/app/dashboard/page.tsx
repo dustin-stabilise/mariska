@@ -164,7 +164,7 @@ export default async function ClientDashboard() {
             <h3 className="font-serif text-xl text-ink">Top up credits</h3>
             <p className="text-muted text-[14.5px] mt-2">
               {PRICING.creditPack.credits} profile unlocks for{" "}
-              {formatGBP(PRICING.creditPack.amount)} — see full profiles, rates
+              {formatGBP(PRICING.creditPack.amount)}. See full profiles, rates
               and compliance records.
             </p>
             <Link

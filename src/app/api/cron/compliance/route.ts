@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 /**
  * Daily compliance cron (see vercel.json):
  *  a) log expiry reminders for approved documents at the 60/30/7-day marks and
- *     on expiry — the reminder_log stands in for email/SMS sends for now;
+ *     on expiry - the reminder_log stands in for email/SMS sends for now;
  *  b) recompute compliance for every professional whose approved documents sit
  *     inside the 60-day horizon (expiry alone flips the score, scoring checks
  *     expiry_date > current_date);

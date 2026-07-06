@@ -1,7 +1,7 @@
 import type { Database } from "@/lib/supabase/database.types";
 
 /**
- * Shared vocabulary for the professional (carer/nurse) area — enum labels,
+ * Shared vocabulary for the professional (carer/nurse) area - enum labels,
  * checkbox options and the compliance checklist definition. Plain module so
  * both server and client components can import it.
  */

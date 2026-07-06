@@ -102,7 +102,7 @@ export async function signUpProfessional(
   if (error) return { error: error.message };
   if (!data.user) return { error: "Sign-up failed, please try again" };
 
-  // Application record — starts in 'applied'; admin review + vetting moves it
+  // Application record - starts in 'applied'; admin review + vetting moves it
   // to active. RLS: professionals may insert only their own row.
   const { error: profileError } = await supabase.from("professional_profiles").insert({
     id: data.user.id,

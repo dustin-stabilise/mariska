@@ -10,15 +10,15 @@ const BANNERS: Record<
 > = {
   "test-purchase": {
     tone: "success",
-    text: "Credits added — payment was completed via the test bypass.",
+    text: "Credits added. Payment was completed via the test bypass.",
   },
   success: {
     tone: "success",
-    text: "Payment received — your credits have been added.",
+    text: "Payment received. Your credits have been added.",
   },
   cancelled: {
     tone: "warn",
-    text: "Checkout was cancelled — you haven't been charged.",
+    text: "Checkout was cancelled. You haven't been charged.",
   },
   insufficient: {
     tone: "error",
@@ -64,7 +64,7 @@ export default async function CreditsPage({
       <PageHeading
         eyebrow="Credits"
         title="Profile unlock credits"
-        intro="One credit unlocks one full profile for 30 days — bio, rates, compliance record and interview requests."
+        intro="One credit unlocks one full profile for 30 days: bio, rates, compliance record and interview requests."
       />
 
       {banner && <Banner tone={banner.tone}>{banner.text}</Banner>}
@@ -102,7 +102,7 @@ export default async function CreditsPage({
                 type="submit"
                 className="w-full px-5 py-2.5 rounded-full font-semibold text-[15px] bg-green text-cream hover:bg-green-dark transition-colors"
               >
-                Buy {PRICING.creditPack.credits} unlocks —{" "}
+                Buy {PRICING.creditPack.credits} unlocks for{" "}
                 {formatGBP(PRICING.creditPack.amount)}
               </button>
             </form>
@@ -141,7 +141,7 @@ export default async function CreditsPage({
                         <td className="px-6 py-3.5 text-body">
                           {labelize(entry.reason)}
                           {entry.note && (
-                            <span className="text-faint"> — {entry.note}</span>
+                            <span className="text-faint"> · {entry.note}</span>
                           )}
                           {entry.payment_id &&
                             testPaymentIds.has(entry.payment_id) && (

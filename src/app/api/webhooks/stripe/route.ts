@@ -10,7 +10,7 @@ import { handleStripeEvent } from "@/lib/payments";
 export async function POST(request: Request) {
   if (!stripeEnabled || !process.env.STRIPE_WEBHOOK_SECRET) {
     return NextResponse.json(
-      { error: "Stripe not configured — running in test bypass mode" },
+      { error: "Stripe not configured - running in test bypass mode" },
       { status: 503 }
     );
   }
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
   try {
     await handleStripeEvent(event);
   } catch (err) {
-    // Non-2xx makes Stripe retry — desirable for transient DB failures.
+    // Non-2xx makes Stripe retry - desirable for transient DB failures.
     console.error("stripe webhook error", err);
     return NextResponse.json({ error: "Fulfilment failed" }, { status: 500 });
   }

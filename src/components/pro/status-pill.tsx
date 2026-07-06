@@ -1,5 +1,5 @@
 /**
- * Small status pill for the professional area — covers document, interview,
+ * Small status pill for the professional area - covers document, interview,
  * referral and professional statuses with the shared traffic-light palette.
  */
 

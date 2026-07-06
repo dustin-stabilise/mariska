@@ -2,7 +2,7 @@ import { reviewDocument } from "@/lib/actions/admin";
 
 /**
  * Inline approve/reject controls for a pending compliance document.
- * Server component — posts straight to the bound admin action; the optional
+ * Server component - posts straight to the bound admin action; the optional
  * notes field travels with whichever button is pressed.
  */
 export function DocReviewForm({ documentId }: { documentId: string }) {
