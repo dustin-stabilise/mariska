@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+/* Brand tokens — mirror of src/lib/brand.ts colours. */
+:root {
+  --green: #3f5e54;
+  --green-dark: #335047;
+  --ink: #243530;
+  --ink-deep: #1c2a26;
+  --cream: #f4efe8;
+  --card: #fbf8f3;
+  --sand: #eae2d4;
+  --tan: #c9b89a;
+  --body: #4b5852;
+  --muted: #5a6a62;
+  --faint: #8a7e6a;
+  --sage: #b9c6bf;
+  --sage-light: #cbd6cf;
+  --hairline: rgba(36, 53, 48, 0.08);
+  --hairline-strong: rgba(36, 53, 48, 0.14);
+}
+
+@theme inline {
+  --color-green: var(--green);
+  --color-green-dark: var(--green-dark);
+  --color-ink: var(--ink);
+  --color-ink-deep: var(--ink-deep);
+  --color-cream: var(--cream);
+  --color-card: var(--card);
+  --color-sand: var(--sand);
+  --color-tan: var(--tan);
+  --color-body: var(--body);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-sage: var(--sage);
+  --color-sage-light: var(--sage-light);
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
+  --font-sans: var(--font-sans), system-ui, sans-serif;
+  --font-serif: var(--font-serif), Georgia, serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  line-height: 1.55;
+}
+
+::selection {
+  background: var(--tan);
+  color: var(--ink);
+}
