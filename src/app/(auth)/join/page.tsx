@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { signUpProfessional } from "@/lib/actions/auth";
-import { AuthForm, Field, SelectField } from "@/components/auth-form";
+import { Field, OtpAuthForm, SelectField } from "@/components/auth-form";
 
 export const metadata = { title: "Join as a carer or nurse" };
 
@@ -12,10 +11,10 @@ export default function JoinPage() {
       </h1>
       <p className="text-muted text-[15px] mb-7">
         Apply in minutes. We&rsquo;ll verify your documents and interview you
-        before your profile goes live. You keep 100% of your rate.
+        before your profile goes live. You set your rate and keep 85% of it.
       </p>
-      <AuthForm
-        action={signUpProfessional}
+      <OtpAuthForm
+        mode="professional"
         submitLabel="Apply to join"
         footer={
           <p className="text-[14px] text-muted text-center mt-2">
@@ -46,7 +45,6 @@ export default function JoinPage() {
             type="number"
           />
         </div>
-        <Field label="Email" name="email" type="email" autoComplete="email" />
         <Field
           label="Phone (optional)"
           name="phone"
@@ -54,14 +52,7 @@ export default function JoinPage() {
           required={false}
           autoComplete="tel"
         />
-        <Field
-          label="Password"
-          name="password"
-          type="password"
-          autoComplete="new-password"
-          placeholder="At least 8 characters"
-        />
-      </AuthForm>
+      </OtpAuthForm>
     </div>
   );
 }
