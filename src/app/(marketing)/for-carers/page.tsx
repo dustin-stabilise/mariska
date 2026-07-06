@@ -8,9 +8,6 @@ export const metadata: Metadata = {
   description: `Join ${brand.name}: free registration, set your own rates, keep 85% of every hour you work and choose the clients you work with.`,
 };
 
-const HATCH_14 =
-  "bg-[repeating-linear-gradient(135deg,#E4D7C3_0_14px,#EADFCD_14px_28px)]";
-
 function BenefitCard({
   title,
   children,
@@ -97,12 +94,12 @@ export default function ForCarersPage() {
           </div>
         </div>
         <div className="relative">
-          <div
-            className={`flex aspect-[4/5] items-end justify-center overflow-hidden rounded-3xl ${HATCH_14} shadow-[0_30px_60px_-28px_rgba(36,53,48,0.4)]`}
-          >
-            <span className="mb-[22px] rounded-[20px] bg-[rgba(251,248,243,0.8)] px-3 py-[6px] font-mono text-xs text-faint">
-              carer portrait, confident &amp; warm
-            </span>
+          <div className="aspect-[4/5] overflow-hidden rounded-3xl shadow-[0_30px_60px_-28px_rgba(36,53,48,0.4)]">
+            <img
+              src="/illustrations/carer-confident.svg"
+              alt="Illustration of a confident carer standing with arms crossed among plants"
+              className="h-full w-full object-cover"
+            />
           </div>
           <div className="absolute -bottom-[26px] -right-[22px] max-w-[210px] rounded-[18px] bg-green px-[22px] py-5 shadow-[0_18px_40px_-22px_rgba(36,53,48,0.5)]">
             <div className="font-serif text-[34px] leading-none text-tan">
@@ -206,23 +203,25 @@ export default function ForCarersPage() {
       {/* TESTIMONIAL */}
       <section className="mx-auto max-w-[1100px] px-7 py-[74px]">
         <div className="grid grid-cols-1 items-center gap-12 rounded-[28px] bg-sand p-8 sm:p-[54px] lg:grid-cols-[0.8fr_1.2fr]">
-          <div className="flex aspect-square items-end rounded-[20px] bg-[repeating-linear-gradient(135deg,#dccdb2_0_12px,#e4d7c3_12px_24px)] p-4">
-            <span className="font-mono text-[11px] text-faint">
-              carer portrait
-            </span>
+          <div className="aspect-square overflow-hidden rounded-[20px]">
+            <img
+              src="/illustrations/portrait-carer.svg"
+              alt="Illustrated portrait of a carer"
+              className="h-full w-full object-cover"
+            />
           </div>
           <div>
             <div className="h-6 font-serif text-[54px] leading-[0.4] text-tan">
               &ldquo;
             </div>
             <p className="mb-[22px] font-serif text-[21px] font-light leading-[1.36] text-ink sm:text-[25px]">
-              After years with an agency taking half my pay, {brand.name} felt
-              like getting my career back. I choose my clients, I&rsquo;m paid
-              fairly, and I&rsquo;ve never felt more supported.
+              Years with an agency taking half your pay, then getting your
+              career back: choosing your clients, being paid fairly, feeling
+              properly supported. That&rsquo;s what {brand.name} is built for.
             </p>
-            <div className="text-[15px] font-bold">Grace O.</div>
+            <div className="text-[15px] font-bold">Built around carers</div>
             <div className="text-sm text-[#7A8780]">
-              Senior carer · 3 years with {brand.name}
+              Founding carer stories coming soon
             </div>
           </div>
         </div>

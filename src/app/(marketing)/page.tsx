@@ -2,11 +2,6 @@ import Link from "next/link";
 import { brand } from "@/lib/brand";
 import { COMMISSION, bookingAmounts, formatGBP } from "@/lib/pricing";
 
-const HATCH_14 =
-  "bg-[repeating-linear-gradient(135deg,#E4D7C3_0_14px,#EADFCD_14px_28px)]";
-const HATCH_12 =
-  "bg-[repeating-linear-gradient(135deg,#E4D7C3_0_12px,#EADFCD_12px_24px)]";
-
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
     <span className="text-[13.5px] font-bold uppercase tracking-[0.06em] text-green">
@@ -17,14 +12,18 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
 
 function ServiceCard({
   title,
+  image,
+  imageAlt,
   children,
 }: {
   title: string;
+  image: string;
+  imageAlt: string;
   children: React.ReactNode;
 }) {
   return (
     <div className="overflow-hidden rounded-[20px] border border-hairline bg-card transition-colors hover:border-green">
-      <div className={`h-[150px] ${HATCH_12}`} />
+      <img src={image} alt={imageAlt} className="h-[150px] w-full object-cover" />
       <div className="p-6">
         <h3 className="mb-2 font-serif text-[22px] font-medium">{title}</h3>
         <p className="text-[14.5px] leading-[1.55] text-muted">{children}</p>
@@ -109,18 +108,30 @@ export default function HomePage() {
         </div>
 
         <div className="relative">
-          <div
-            className={`flex aspect-[4/5] items-end justify-center overflow-hidden rounded-3xl ${HATCH_14} shadow-[0_30px_60px_-28px_rgba(36,53,48,0.4)]`}
-          >
-            <span className="mb-[22px] rounded-[20px] bg-[rgba(251,248,243,0.8)] px-3 py-[6px] font-mono text-xs tracking-[0.02em] text-faint">
-              carer &amp; client photo, warm &amp; candid
-            </span>
+          <div className="aspect-[4/5] overflow-hidden rounded-3xl shadow-[0_30px_60px_-28px_rgba(36,53,48,0.4)]">
+            <img
+              src="/illustrations/hero-companionship.svg"
+              alt="Illustration of a carer and an older client sharing tea together on a sofa at home"
+              className="h-full w-full object-cover"
+            />
           </div>
           <div className="absolute -bottom-[26px] -left-[26px] max-w-[225px] rounded-[18px] border border-[rgba(36,53,48,0.07)] bg-card px-5 py-[18px] shadow-[0_18px_40px_-22px_rgba(36,53,48,0.45)]">
             <div className="mb-[10px] flex">
-              <span className="h-[30px] w-[30px] rounded-full border-2 border-card bg-tan" />
-              <span className="-ml-2 h-[30px] w-[30px] rounded-full border-2 border-card bg-[#8A9A92]" />
-              <span className="-ml-2 h-[30px] w-[30px] rounded-full border-2 border-card bg-green" />
+              <img
+                src="/illustrations/avatar-1.svg"
+                alt=""
+                className="h-[30px] w-[30px] rounded-full border-2 border-card"
+              />
+              <img
+                src="/illustrations/avatar-2.svg"
+                alt=""
+                className="-ml-2 h-[30px] w-[30px] rounded-full border-2 border-card"
+              />
+              <img
+                src="/illustrations/avatar-3.svg"
+                alt=""
+                className="-ml-2 h-[30px] w-[30px] rounded-full border-2 border-card"
+              />
             </div>
             <div className="text-[13.5px] leading-[1.45] text-body">
               <strong className="text-ink">Found in days</strong>, not weeks.
@@ -134,14 +145,14 @@ export default function HomePage() {
       <section className="border-y border-hairline bg-card">
         <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-[30px] px-7 py-[22px]">
           <span className="text-[13.5px] font-semibold uppercase tracking-[0.04em] text-faint">
-            Trusted by families across the UK
+            Now welcoming founding families across the UK
           </span>
           <div className="flex flex-wrap items-center gap-9 text-[15px] font-semibold text-muted">
-            <span>★★★★★ 4.9 on reviews</span>
+            <span>Carers keep 85% of their rate</span>
             <span className="hidden h-[18px] w-px bg-hairline-strong sm:block" />
-            <span>1,200+ matches made</span>
+            <span>All-in price on every profile</span>
             <span className="hidden h-[18px] w-px bg-hairline-strong sm:block" />
-            <span>Carers vetted to CQC standards</span>
+            <span>Carers vetted to CQC-equivalent standards</span>
           </div>
         </div>
       </section>
@@ -191,7 +202,7 @@ export default function HomePage() {
             <p className="text-[14.5px] leading-[1.55] text-muted">
               One transparent price: your carer&rsquo;s rate plus a{" "}
               {COMMISSION.clientPct}% platform fee, shown before you book.
-              Often 30%+ less than a managed agency.
+              Often 30%+ less than a managed agency, on published market rates.
             </p>
           </div>
           <div className="bg-green px-[26px] py-8">
@@ -248,33 +259,35 @@ export default function HomePage() {
             </ul>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div
-              className={`flex aspect-square items-end rounded-[18px] ${HATCH_12} p-[14px]`}
-            >
-              <span className="font-mono text-[11px] text-faint">portrait</span>
+            <div className="aspect-square overflow-hidden rounded-[18px]">
+              <img
+                src="/illustrations/portrait-carer.svg"
+                alt="Illustration of a carer's portrait with a potted plant behind"
+                className="h-full w-full object-cover"
+              />
             </div>
             <div className="flex aspect-square flex-col justify-center rounded-[18px] bg-green p-5">
               <span className="font-serif text-[40px] leading-none text-cream">
-                94%
+                85%
               </span>
               <span className="mt-[6px] text-[13px] leading-[1.4] text-sage-light">
-                of clients stay with their first match
+                of every booking goes to your carer
               </span>
             </div>
             <div className="flex aspect-square flex-col justify-center rounded-[18px] bg-tan p-5">
               <span className="font-serif text-[40px] leading-none text-[#3A3322]">
-                82%
+                30%+
               </span>
               <span className="mt-[6px] text-[13px] leading-[1.4] text-[#5C5232]">
-                of carer applicants don&rsquo;t pass our checks
+                typical saving vs managed agencies, on published UK homecare rates
               </span>
             </div>
-            <div
-              className={`flex aspect-square items-end rounded-[18px] ${HATCH_12} p-[14px]`}
-            >
-              <span className="font-mono text-[11px] text-faint">
-                candid moment
-              </span>
+            <div className="aspect-square overflow-hidden rounded-[18px]">
+              <img
+                src="/illustrations/candid-garden.svg"
+                alt="Illustration of a carer and client tending flowers in a garden with a watering can"
+                className="h-full w-full object-cover"
+              />
             </div>
           </div>
         </div>
@@ -297,23 +310,43 @@ export default function HomePage() {
           </Link>
         </div>
         <div className="grid grid-cols-1 gap-[18px] sm:grid-cols-2 lg:grid-cols-3">
-          <ServiceCard title="Live-in care">
+          <ServiceCard
+            title="Live-in care"
+            image="/illustrations/service-live-in.svg"
+            imageAlt="Illustration of a house with a warmly lit window and a carer at the door"
+          >
             Round-the-clock support from a carer who lives with you, so home
             stays home.
           </ServiceCard>
-          <ServiceCard title="Dementia care">
+          <ServiceCard
+            title="Dementia care"
+            image="/illustrations/service-dementia.svg"
+            imageAlt="Illustration of a carer and client looking through a photo album together"
+          >
             Patient, familiar faces who bring calm, routine and dignity to
             every day.
           </ServiceCard>
-          <ServiceCard title="Specialist nursing">
+          <ServiceCard
+            title="Specialist nursing"
+            image="/illustrations/service-nursing.svg"
+            imageAlt="Illustration of a nurse with a stethoscope and a medical bag"
+          >
             Registered nurses for complex, clinical and palliative needs at
             home.
           </ServiceCard>
-          <ServiceCard title="Companionship">
+          <ServiceCard
+            title="Companionship"
+            image="/illustrations/service-companionship.svg"
+            imageAlt="Illustration of two people sharing tea and a game of cards at a table"
+          >
             A friendly visitor for conversation, outings and the small things
             that matter.
           </ServiceCard>
-          <ServiceCard title="Respite care">
+          <ServiceCard
+            title="Respite care"
+            image="/illustrations/service-respite.svg"
+            imageAlt="Illustration of a restful armchair with a blanket, an open book and a lamp"
+          >
             Trusted cover when family carers need a well-earned break, planned
             or urgent.
           </ServiceCard>
@@ -385,17 +418,21 @@ export default function HomePage() {
             &ldquo;
           </div>
           <p className="mb-7 font-serif text-2xl font-light leading-[1.34] tracking-[-0.01em] text-ink sm:text-[30px]">
-            We found Mum a carer who&rsquo;d grown up in the same part of
-            Ireland. Within a week they were singing the old songs together. It
-            stopped feeling like &lsquo;care&rsquo; and started feeling like
-            family.
+            A carer who grew up in the same part of Ireland as Mum, singing the
+            old songs together within a week. That&rsquo;s the kind of match we
+            exist to make: care that stops feeling like &lsquo;care&rsquo; and
+            starts feeling like family.
           </p>
           <div className="flex items-center justify-center gap-3">
-            <span className="h-[42px] w-[42px] rounded-full bg-[repeating-linear-gradient(135deg,#E4D7C3_0_8px,#EADFCD_8px_16px)]" />
+            <img
+              src="/illustrations/avatar-1.svg"
+              alt=""
+              className="h-[42px] w-[42px] rounded-full"
+            />
             <div className="text-left">
-              <div className="text-[15px] font-bold">Sarah M.</div>
+              <div className="text-[15px] font-bold">The match we aim for</div>
               <div className="text-sm text-[#7A8780]">
-                Daughter · Manchester
+                Founding family stories coming soon
               </div>
             </div>
           </div>
@@ -415,11 +452,11 @@ export default function HomePage() {
             <FaqItem
               defaultOpen
               question="Are your carers properly checked?"
-              answer={`Yes. Every carer completes enhanced DBS, identity and right-to-work checks, reference verification and a face-to-face interview before their profile goes live. We reject around 82% of applicants. Only the best join ${brand.name}.`}
+              answer={`Yes. Every carer completes enhanced DBS, identity and right-to-work checks, reference verification and a face-to-face interview before their profile goes live. The UK's leading introduction platforms accept as few as 1 in 7 applicants, and we hold our vetting to the same bar.`}
             />
             <FaqItem
               question={`How is ${brand.name} different from a managed care agency?`}
-              answer={`We’re a marketplace of vetted, self-employed carers. You browse full profiles for free, meet the people who stand out for free, and book the one who fits. Your carer works with you directly while bookings and payments run securely through the platform, so you stay in control, build a real relationship, and typically save 30% or more compared with a managed agency.`}
+              answer={`We’re a marketplace of vetted, self-employed carers. You browse full profiles for free, meet the people who stand out for free, and book the one who fits. Your carer works with you directly while bookings and payments run securely through the platform, so you stay in control, build a real relationship, and typically save 30% or more compared with a managed agency, based on published UK homecare rates of £26 to £38 an hour at managed providers.`}
             />
             <FaqItem
               question="What does it cost, and are there hidden fees?"
@@ -427,7 +464,7 @@ export default function HomePage() {
             />
             <FaqItem
               question="What does ‘matched on what matters’ actually mean?"
-              answer="Full profiles go beyond qualifications to personality, shared interests, hobbies, language and culture, alongside references, verification status and a video introduction. Choosing someone who shares your loved one’s background or passions builds trust faster, which is why 94% of our clients stay with their first match."
+              answer="Full profiles go beyond qualifications to personality, shared interests, hobbies, language and culture, alongside references, verification status and a video introduction. Choosing someone who shares your loved one’s background or passions builds trust faster, and it's what makes a match last."
             />
           </div>
         </div>

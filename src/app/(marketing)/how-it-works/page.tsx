@@ -8,9 +8,6 @@ export const metadata: Metadata = {
   description: `How ${brand.name} works for families: browse full vetted carer and nurse profiles for free, meet for free, then book and pay through the platform.`,
 };
 
-const HATCH_12 =
-  "bg-[repeating-linear-gradient(135deg,#E4D7C3_0_12px,#EADFCD_12px_24px)]";
-
 function VettingCard({
   title,
   children,
@@ -66,12 +63,12 @@ export default function HowItWorksPage() {
                 unlock fees.
               </p>
             </div>
-            <div
-              className={`flex aspect-[16/10] items-end rounded-2xl ${HATCH_12} p-3`}
-            >
-              <span className="font-mono text-[11px] text-faint">
-                search results
-              </span>
+            <div className="aspect-[16/10] overflow-hidden rounded-2xl">
+              <img
+                src="/illustrations/step-profiles.svg"
+                alt="Illustration of vetted carer profile cards fanned out"
+                className="h-full w-full object-cover"
+              />
             </div>
           </div>
 
@@ -90,10 +87,12 @@ export default function HowItWorksPage() {
                 one before deciding.
               </p>
             </div>
-            <div
-              className={`flex aspect-[16/10] items-end rounded-2xl ${HATCH_12} p-3 lg:order-2`}
-            >
-              <span className="font-mono text-[11px] text-faint">meeting</span>
+            <div className="aspect-[16/10] overflow-hidden rounded-2xl lg:order-2">
+              <img
+                src="/illustrations/step-meeting.svg"
+                alt="Illustration of a family and a carer meeting over a video call"
+                className="h-full w-full object-cover"
+              />
             </div>
           </div>
 
@@ -113,12 +112,12 @@ export default function HowItWorksPage() {
                 anything.
               </p>
             </div>
-            <div
-              className={`flex aspect-[16/10] items-end rounded-2xl ${HATCH_12} p-3`}
-            >
-              <span className="font-mono text-[11px] text-faint">
-                booking &amp; payment
-              </span>
+            <div className="aspect-[16/10] overflow-hidden rounded-2xl">
+              <img
+                src="/illustrations/step-conversation.svg"
+                alt="Illustration of a person booking care on their phone with message bubbles"
+                className="h-full w-full object-cover"
+              />
             </div>
           </div>
 
@@ -137,10 +136,12 @@ export default function HowItWorksPage() {
                 relationship stays strong on both sides.
               </p>
             </div>
-            <div className="flex aspect-[16/10] items-end rounded-2xl bg-[repeating-linear-gradient(135deg,#4d6a60_0_12px,#577567_12px_24px)] p-3 lg:order-2">
-              <span className="font-mono text-[11px] text-[#aebcb4]">
-                care at home
-              </span>
+            <div className="aspect-[16/10] overflow-hidden rounded-2xl lg:order-2">
+              <img
+                src="/illustrations/step-care-begins.svg"
+                alt="Illustration of a carer and client walking together arm in arm"
+                className="h-full w-full object-cover"
+              />
             </div>
           </div>
         </div>
