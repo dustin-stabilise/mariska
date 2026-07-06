@@ -1,10 +1,25 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendToUser } from "@/lib/email";
+import {
+  availabilityNudgeEmail,
+  complianceExpiryEmail,
+} from "@/lib/email/templates";
+
+const DOC_LABELS: Record<string, string> = {
+  dbs: "enhanced DBS certificate",
+  right_to_work: "right-to-work evidence",
+  training_certificate: "mandatory training certificate",
+  insurance: "professional indemnity insurance",
+  nmc_registration: "NMC registration",
+  reference: "reference",
+  qualification: "qualification certificate",
+};
 
 /**
  * Daily compliance cron (see vercel.json):
- *  a) log expiry reminders for approved documents at the 60/30/7-day marks and
- *     on expiry - the reminder_log stands in for email/SMS sends for now;
+ *  a) send + log expiry reminders for approved documents at the 60/30/7-day
+ *     marks and on expiry (reminder_log dedupes sends);
  *  b) recompute compliance for every professional whose approved documents sit
  *     inside the 60-day horizon (expiry alone flips the score, scoring checks
  *     expiry_date > current_date);
@@ -77,17 +92,17 @@ export async function GET(request: Request) {
     kind: ExpiryKind;
   }[] = [];
   for (const doc of expiringDocs) {
-    const kind = expiryKind(daysUntil(doc.expiry_date!));
+    const daysLeft = daysUntil(doc.expiry_date!);
+    const kind = expiryKind(daysLeft);
     if (alreadySent.has(`${doc.id}:${kind}`)) continue;
     expiryInserts.push({
       professional_id: doc.professional_id,
       document_id: doc.id,
       kind,
     });
-    console.log(
-      `[cron/compliance] ${kind} reminder → professional ${doc.professional_id} ` +
-        `(${doc.doc_type} expires ${doc.expiry_date})`
-    );
+    const label = DOC_LABELS[doc.doc_type] ?? doc.doc_type;
+    const email = complianceExpiryEmail(label, daysLeft);
+    await sendToUser(doc.professional_id, email.subject, email.html);
   }
   if (expiryInserts.length > 0) {
     const { error } = await db.from("reminder_log").insert(expiryInserts);
@@ -140,9 +155,8 @@ export async function GET(request: Request) {
     .filter((id) => !recentlyNudged.has(id))
     .map((id) => ({ professional_id: id, kind: "availability" }));
   for (const insert of availabilityInserts) {
-    console.log(
-      `[cron/compliance] availability reminder → professional ${insert.professional_id}`
-    );
+    const email = availabilityNudgeEmail();
+    await sendToUser(insert.professional_id, email.subject, email.html);
   }
   if (availabilityInserts.length > 0) {
     const { error } = await db.from("reminder_log").insert(availabilityInserts);

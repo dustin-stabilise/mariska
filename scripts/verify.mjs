@@ -74,7 +74,7 @@ const grace = { id: null };
   check("Grace present in search", Boolean(grace.id));
 
   const { data: fullBefore } = await c.from("professional_profiles").select("id").eq("id", grace.id);
-  check("full profile hidden before unlock", (fullBefore ?? []).length === 0);
+  check("full profile freely readable (commission model)", (fullBefore ?? []).length === 1);
 
   const { data: bal0 } = await c.rpc("my_credit_balance");
   check("starting balance is 5", bal0 === 5, `got ${bal0}`);
@@ -128,7 +128,7 @@ console.log("\n— professional flow (grace.carer@example.com) —");
   check("confirm_availability RPC works", !availErr, availErr?.message);
 
   const { data: otherFull } = await c.from("professional_profiles").select("id").neq("id", session.user.id);
-  check("professional cannot read other full profiles", (otherFull ?? []).length === 0);
+  check("professional sees other active profiles (free browse)", (otherFull ?? []).length === 5);
 
   const { data: doc, error: docErr } = await c.from("compliance_documents").insert({
     professional_id: session.user.id, doc_type: "qualification", title: "Verify test cert",
@@ -142,8 +142,9 @@ console.log("\n— professional flow (grace.carer@example.com) —");
   const { error: delErr } = await c.from("compliance_documents").delete().eq("id", doc.id);
   check("professional deletes own pending doc", !delErr, delErr?.message);
 
-  const { data: clientNames } = await c.from("profiles").select("first_name").neq("id", session.user.id);
-  check("professional cannot read other profiles/names", (clientNames ?? []).length === 0);
+  const { data: clientNames } = await c.from("profiles").select("first_name, role").neq("id", session.user.id);
+  const nonPro = (clientNames ?? []).filter((r) => r.role !== "professional");
+  check("professional cannot read client/admin profiles", nonPro.length === 0, JSON.stringify(nonPro));
 
   const proDash = await getPage("/app/pro", session);
   check("GET /app/pro renders compliance", proDash.status === 200 && proDash.body.toLowerCase().includes("compliance"), `status ${proDash.status}`);
@@ -168,6 +169,85 @@ console.log("\n— admin flow (admin@example.com) —");
   check("GET /app/admin/professionals lists Grace", pros.status === 200 && pros.body.includes("Grace"), `status ${pros.status}`);
   const proDetail = await getPage(`/app/admin/professionals/${grace.id}`, session);
   check("GET admin professional detail renders", proDetail.status === 200, `status ${proDetail.status}`);
+}
+
+
+// ───────────────────────────────────────────────────────────────────────────
+// DR-0001 commission-model flows (appended)
+// ───────────────────────────────────────────────────────────────────────────
+console.log("\n— commission model: free browse + free interviews —");
+{
+  const { c } = await login("client@example.com");
+  const { data: full } = await c.from("professional_profiles").select("id, bio").eq("id", grace.id);
+  check("full profile readable WITHOUT unlock (free browse)", full?.length === 1);
+  const { data: pros } = await c.from("professional_profiles").select("id").eq("status", "active");
+  check("all active professionals fully readable", (pros?.length ?? 0) >= 6, `got ${pros?.length}`);
+}
+
+console.log("\n— booking lifecycle (propose → accept → cancel path) —");
+{
+  const client = await login("client@example.com");
+  const pro = await login("grace.carer@example.com");
+
+  // no direct insert allowed
+  const { error: insErr } = await client.c.from("bookings").insert({
+    client_id: client.session.user.id, professional_id: grace.id,
+    starts_at: new Date(Date.now() + 86400000).toISOString(),
+    ends_at: new Date(Date.now() + 90000000).toISOString(),
+    hours: 1, hourly_rate: 1, client_fee_pct: 0, carer_fee_pct: 0,
+    care_amount: 1, client_fee_amount: 0, total_amount: 1,
+    carer_fee_amount: 0, carer_net_amount: 1,
+  });
+  check("client cannot insert bookings directly (service-only)", Boolean(insErr));
+
+  // create via the same server-side path the action uses (service role here,
+  // mirroring createBookingProposal maths)
+  const svc = createClient(URL_, process.env.SUPABASE_SECRET_KEY, { auth: { persistSession: false } });
+  const starts = new Date(Date.now() + 86400000);
+  const ends = new Date(starts.getTime() + 3 * 3600000);
+  const rate = 1600; const hours = 3;
+  const care = hours * rate;
+  const { data: booking, error: bErr } = await svc.from("bookings").insert({
+    client_id: client.session.user.id, professional_id: grace.id,
+    starts_at: starts.toISOString(), ends_at: ends.toISOString(),
+    hours, hourly_rate: rate, client_fee_pct: 6, carer_fee_pct: 15,
+    care_amount: care,
+    client_fee_amount: Math.round(care * 0.06),
+    total_amount: care + Math.round(care * 0.06),
+    carer_fee_amount: Math.round(care * 0.15),
+    carer_net_amount: care - Math.round(care * 0.15),
+  }).select().single();
+  check("booking created (3h @ £16)", !bErr && booking?.status === "proposed", bErr?.message);
+  check("fee split: client pays £50.88", booking?.total_amount === 5088, `got ${booking?.total_amount}`);
+  check("fee split: carer nets £40.80", booking?.carer_net_amount === 4080, `got ${booking?.carer_net_amount}`);
+
+  // both sides can read it
+  const { data: cView } = await client.c.from("bookings").select("id").eq("id", booking.id);
+  const { data: pView } = await pro.c.from("bookings").select("id").eq("id", booking.id);
+  check("client sees booking", cView?.length === 1);
+  check("professional sees booking", pView?.length === 1);
+
+  // wrong party can't accept
+  const { error: wrongAccept } = await client.c.rpc("accept_booking", { p_booking_id: booking.id });
+  check("client cannot accept booking (carer-only RPC)", Boolean(wrongAccept));
+
+  // carer accepts
+  const { data: accepted, error: accErr } = await pro.c.rpc("accept_booking", { p_booking_id: booking.id });
+  check("carer accepts booking", !accErr && accepted?.status === "confirmed", accErr?.message);
+
+  // client cancels (allowed while confirmed)
+  const { data: cancelled, error: canErr } = await client.c.rpc("cancel_booking", {
+    p_booking_id: booking.id, p_reason: "verify-test cleanup",
+  });
+  check("client cancels confirmed booking", !canErr && cancelled?.status === "cancelled", canErr?.message);
+
+  // interviews are free: request without any payment
+  const { data: iv, error: ivErr } = await svc.from("interview_requests").insert({
+    client_id: client.session.user.id, professional_id: grace.id, client_notes: "verify free interview",
+  }).select().single();
+  check("interview request created with no payment", !ivErr && iv?.payment_id === null, ivErr?.message);
+  await svc.from("interview_requests").delete().eq("id", iv.id);
+  await svc.from("bookings").delete().eq("id", booking.id);
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

@@ -2,6 +2,32 @@
  * All platform pricing in one place. Amounts in pence (GBP).
  * These feed both the UI and the payments layer (Stripe line items).
  */
+
+/**
+ * DR-0001: primary revenue is dual-sided commission on on-platform bookings.
+ * Carers set their rates and keep 85%; clients pay the rate plus 6%.
+ * ~21% blended take, inside the field-tested 20-24% norm.
+ */
+export const COMMISSION = {
+  carerPct: 15,
+  clientPct: 6,
+} as const;
+
+export function bookingAmounts(hours: number, hourlyRate: number) {
+  const careAmount = Math.round(hours * hourlyRate);
+  const clientFeeAmount = Math.round((careAmount * COMMISSION.clientPct) / 100);
+  const carerFeeAmount = Math.round((careAmount * COMMISSION.carerPct) / 100);
+  return {
+    careAmount,
+    clientFeeAmount,
+    totalAmount: careAmount + clientFeeAmount,
+    carerFeeAmount,
+    carerNetAmount: careAmount - carerFeeAmount,
+  };
+}
+
+/** Legacy introduction-fee pricing (retired as primary revenue by DR-0001;
+ * kept while the old code paths remain in the tree). */
 export const PRICING = {
   currency: "gbp" as const,
 

@@ -7,7 +7,6 @@ import {
   Chip,
   labelize,
 } from "@/components/client/shared";
-import { UnlockButton } from "@/components/client/unlock-button";
 
 type CareCategory = Database["public"]["Enums"]["care_category"];
 type AvailabilityStatus = Database["public"]["Enums"]["availability_status"];
@@ -31,7 +30,7 @@ export default async function SearchPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const sp = await searchParams;
-  const { supabase, user } = await requireRole("client");
+  const { supabase } = await requireRole("client");
 
   const kind = pick<Kind>(sp.kind, ["carer", "nurse"]);
   const category = pick<CareCategory>(sp.category, CARE_CATEGORIES);
@@ -53,16 +52,7 @@ export default async function SearchPage({
     query = query.or(`region.ilike.%${safe}%,location.ilike.%${safe}%`);
   }
 
-  const nowIso = new Date().toISOString();
-  const [{ data: pros }, { data: unlocks }] = await Promise.all([
-    query,
-    supabase
-      .from("profile_unlocks")
-      .select("professional_id")
-      .eq("client_id", user.id)
-      .gt("expires_at", nowIso),
-  ]);
-  const unlockedIds = new Set((unlocks ?? []).map((u) => u.professional_id));
+  const { data: pros } = await query;
 
   const hasFilters = Boolean(kind || category || availability || region);
 
@@ -71,7 +61,7 @@ export default async function SearchPage({
       <PageHeading
         eyebrow="Find care"
         title="Search professionals"
-        intro="Every carer and nurse here has been vetted, interviewed and compliance-checked. Unlock a profile to see everything."
+        intro="Every carer and nurse here has been vetted, interviewed and compliance-checked. Full profiles are free to view."
       />
 
       <Card className="mb-8">
@@ -197,7 +187,6 @@ export default async function SearchPage({
           </p>
           <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
             {pros.map((p) => {
-              const isUnlocked = p.id ? unlockedIds.has(p.id) : false;
               return (
                 <Card key={p.id} className="flex flex-col">
                   <div className="flex items-start justify-between gap-3">
@@ -243,20 +232,13 @@ export default async function SearchPage({
                   </div>
 
                   <div className="mt-auto pt-4 border-t border-hairline">
-                    {isUnlocked && p.id ? (
+                    {p.id && (
                       <Link
                         href={`/app/professionals/${p.id}`}
                         className="block text-center px-5 py-2.5 rounded-full font-semibold text-[15px] border border-green text-green hover:bg-green hover:text-cream transition-colors"
                       >
                         View profile
                       </Link>
-                    ) : p.id ? (
-                      <UnlockButton professionalId={p.id} />
-                    ) : null}
-                    {isUnlocked && (
-                      <p className="text-[12.5px] text-faint text-center mt-2">
-                        Already unlocked
-                      </p>
                     )}
                   </div>
                 </Card>

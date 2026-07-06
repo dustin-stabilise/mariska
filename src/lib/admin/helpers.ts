@@ -95,6 +95,13 @@ const statusTint: Record<string, string> = {
   dismissed: "bg-sand text-muted",
   pending_review: "bg-tan/30 text-[#7a6a3d]",
   approved: "bg-green/10 text-green",
+  // bookings / payments / payouts
+  proposed: "bg-tan/30 text-[#7a6a3d]",
+  confirmed: "bg-green/10 text-green",
+  disputed: "bg-red-100 text-red-700",
+  paid: "bg-green/10 text-green",
+  unpaid: "bg-tan/30 text-[#7a6a3d]",
+  failed: "bg-red-100 text-red-700",
 };
 
 export function statusPillClass(status: string): string {

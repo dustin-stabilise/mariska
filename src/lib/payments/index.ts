@@ -202,7 +202,13 @@ export async function handleStripeEvent(event: {
       };
       const meta = session.metadata ?? {};
 
-      if (meta.kind === "credit_pack" && meta.payment_id) {
+      if (meta.kind === "booking" && meta.payment_id) {
+        const paid = await markPaymentPaid(meta.payment_id, session.payment_intent ?? undefined);
+        if (paid && meta.booking_id) {
+          const { attachPaidBookingPayment } = await import("./bookings");
+          await attachPaidBookingPayment(meta.booking_id, meta.payment_id);
+        }
+      } else if (meta.kind === "credit_pack" && meta.payment_id) {
         const paid = await markPaymentPaid(meta.payment_id, session.payment_intent ?? undefined);
         if (paid) await grantCreditPack(meta.user_id, meta.payment_id);
       } else if (meta.kind === "interview_fee" && meta.payment_id) {
@@ -262,6 +268,17 @@ export async function handleStripeEvent(event: {
       };
       const { cancelRetainer } = await import("./fulfil");
       await cancelRetainer(sub.metadata?.user_id ?? "", sub.id);
+      break;
+    }
+
+    case "account.updated": {
+      const account = event.data.object as {
+        id: string;
+        payouts_enabled?: boolean;
+        metadata?: Record<string, string>;
+      };
+      const { syncConnectAccount } = await import("./bookings");
+      await syncConnectAccount(account);
       break;
     }
   }

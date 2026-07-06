@@ -33,6 +33,8 @@ export default async function AdminOverviewPage() {
     activePros,
     expiringDocs,
     stalePros,
+    activeBookings,
+    completedBookings,
   ] = await Promise.all([
     supabase
       .from("professional_profiles")
@@ -82,6 +84,14 @@ export default async function AdminOverviewPage() {
       .eq("status", "active")
       .lt("availability_confirmed_at", staleCutoff)
       .order("availability_confirmed_at", { ascending: true }),
+    supabase
+      .from("bookings")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["proposed", "confirmed"]),
+    supabase
+      .from("bookings")
+      .select("client_fee_amount, carer_fee_amount")
+      .eq("status", "completed"),
   ]);
 
   // Revenue
@@ -94,6 +104,13 @@ export default async function AdminOverviewPage() {
       revenueLast30 += p.amount;
     }
   }
+
+  // Booking commission (DR-0001): platform take on completed bookings
+  const completedBookingRows = completedBookings.data ?? [];
+  const bookingCommission = completedBookingRows.reduce(
+    (sum, b) => sum + b.client_fee_amount + b.carer_fee_amount,
+    0
+  );
 
   // Compliance overview for active professionals
   const complianceCounts = { green: 0, amber: 0, red: 0 };
@@ -131,6 +148,17 @@ export default async function AdminOverviewPage() {
           label="Revenue"
           value={formatGBP(revenueAllTime)}
           hint={`${formatGBP(revenueLast30)} in the last 30 days`}
+        />
+        <Stat
+          label="Active bookings"
+          value={activeBookings.count ?? 0}
+          hint="Proposed or confirmed"
+        />
+        <Stat label="Completed bookings" value={completedBookingRows.length} />
+        <Stat
+          label="Booking commission"
+          value={formatGBP(bookingCommission)}
+          hint="Platform take on completed bookings"
         />
       </div>
 

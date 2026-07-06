@@ -29,7 +29,9 @@ export default async function AdminInterviewsPage({
 
   let query = supabase
     .from("interview_requests")
-    .select("id, client_id, professional_id, status, scheduled_at, created_at, client_notes")
+    .select(
+      "id, client_id, professional_id, status, scheduled_at, video_url, created_at, client_notes"
+    )
     .order("created_at", { ascending: false });
   if (activeFilter) query = query.eq("status", activeFilter);
   const { data } = await query;
@@ -115,18 +117,34 @@ export default async function AdminInterviewsPage({
                   <td className={`${td} whitespace-nowrap`}>{formatDate(i.created_at)}</td>
                   <td className={`${td} whitespace-nowrap`}>
                     {formatDateTime(i.scheduled_at)}
+                    {i.video_url && (
+                      <a
+                        href={i.video_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block text-[13px] font-semibold text-green hover:text-green-dark"
+                      >
+                        Video call link
+                      </a>
+                    )}
                   </td>
                   <td className={td}>
                     {i.status === "accepted" && (
                       <form
                         action={scheduleInterview.bind(null, i.id)}
-                        className="flex items-center gap-2"
+                        className="flex flex-wrap items-center gap-2"
                       >
                         <input
                           type="datetime-local"
                           name="scheduledAt"
                           required
                           className="border border-hairline-strong rounded-full px-3 py-1 text-[13px] bg-card text-ink"
+                        />
+                        <input
+                          type="url"
+                          name="videoUrl"
+                          placeholder="Video call link (optional)"
+                          className="border border-hairline-strong rounded-full px-3 py-1 text-[13px] bg-card text-ink w-52"
                         />
                         <button
                           type="submit"

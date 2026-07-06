@@ -29,7 +29,7 @@ export default async function ProInterviewsPage() {
 
   const { data: requests } = await supabase
     .from("interview_requests")
-    .select("id, status, scheduled_at, client_notes, created_at")
+    .select("id, status, scheduled_at, video_url, duration_minutes, client_notes, created_at")
     .eq("professional_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -40,27 +40,28 @@ export default async function ProInterviewsPage() {
     <div>
       <PageHeading
         eyebrow="Professional"
-        title="Interview requests"
+        title="Meet and greets"
         intro={
           open > 0
             ? `${open} request${open === 1 ? "" : "s"} waiting for your response.`
-            : "Families who'd like to meet you appear here."
+            : "Families who'd like a free video meet and greet appear here."
         }
       />
 
       <Card className="mb-6 bg-sage-light border-sage">
         <p className="text-[14.5px] text-body">
-          To protect everyone&apos;s privacy, we don&apos;t show client names or
-          contact details here. You&apos;ll see their notes about the care they
-          need, and our team coordinates introductions and scheduling once you
-          accept.
+          Meet and greets are short, free video calls: there&apos;s no charge
+          to you or to the family. To protect everyone&apos;s privacy we
+          don&apos;t show client names or contact details here. You&apos;ll see
+          their notes about the care they need, and once you accept, our team
+          arranges a time and sends both of you the video call link.
         </p>
       </Card>
 
       {interviews.length === 0 ? (
         <EmptyState
-          title="No interview requests yet"
-          body="Once your profile is active and compliant, families can request an interview with you. Keeping your availability confirmed helps you appear in search."
+          title="No meet and greet requests yet"
+          body="Once your profile is active and compliant, families can request a free meet and greet with you. Keeping your availability confirmed helps you appear in search."
         />
       ) : (
         <div className="space-y-4 max-w-3xl">
@@ -83,15 +84,30 @@ export default async function ProInterviewsPage() {
               )}
 
               {req.scheduled_at && (
-                <p className="mt-3 text-[14.5px] text-ink">
-                  <span className="font-semibold">Scheduled:</span>{" "}
-                  {formatDateTime(req.scheduled_at)}
-                </p>
+                <div className="mt-3">
+                  <p className="text-[14.5px] text-ink">
+                    <span className="font-semibold">Scheduled:</span>{" "}
+                    {formatDateTime(req.scheduled_at)}
+                    {req.duration_minutes ? (
+                      <span className="text-muted"> ({req.duration_minutes} minutes)</span>
+                    ) : null}
+                  </p>
+                  {req.video_url && (
+                    <a
+                      href={req.video_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block mt-2 px-4 py-1.5 rounded-full text-[14px] font-semibold bg-green text-cream hover:bg-green-dark transition-colors"
+                    >
+                      Join video call
+                    </a>
+                  )}
+                </div>
               )}
               {req.status === "accepted" && !req.scheduled_at && (
                 <p className="mt-3 text-[13.5px] text-muted">
-                  Accepted. Our team will be in touch to arrange a time that
-                  suits you both.
+                  Accepted. Our team will arrange a time that suits you both
+                  and share the video call link here.
                 </p>
               )}
 

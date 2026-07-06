@@ -5,7 +5,6 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import {
   startCreditPackCheckout,
-  startInterviewCheckout,
   startRetainerCheckout,
 } from "@/lib/payments";
 
@@ -36,13 +35,29 @@ export async function requestInterview(
   _prev: ActionResult,
   formData: FormData
 ): Promise<ActionResult> {
-  const { user } = await requireUser();
+  const { supabase, user } = await requireUser();
   const professionalId = formData.get("professionalId") as string;
   const notes = (formData.get("notes") as string) || undefined;
   if (!professionalId) return { error: "Missing professional" };
 
-  const url = await startInterviewCheckout(user.id, professionalId, notes);
-  redirect(url);
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  if (profile?.role !== "client") return { error: "Only clients can request interviews" };
+
+  // DR-0001: interviews are free meet-and-greets, the step before a booking.
+  const { createInterviewRequest } = await import("@/lib/payments/fulfil");
+  await createInterviewRequest({ clientId: user.id, professionalId, notes });
+
+  const { sendToUser } = await import("@/lib/email");
+  const { interviewRequestedEmail } = await import("@/lib/email/templates");
+  const email = interviewRequestedEmail(notes);
+  await sendToUser(professionalId, email.subject, email.html);
+
+  revalidatePath("/app/interviews");
+  redirect("/app/interviews?status=requested");
 }
 
 export async function unlockProfile(

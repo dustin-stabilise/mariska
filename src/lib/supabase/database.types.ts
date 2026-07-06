@@ -34,6 +34,110 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookings: {
+        Row: {
+          cancelled_reason: string | null
+          care_amount: number
+          carer_fee_amount: number
+          carer_fee_pct: number
+          carer_net_amount: number
+          client_fee_amount: number
+          client_fee_pct: number
+          client_id: string
+          client_notes: string | null
+          completed_at: string | null
+          confirmed_at: string | null
+          created_at: string
+          ends_at: string
+          hourly_rate: number
+          hours: number
+          id: string
+          payment_id: string | null
+          professional_id: string
+          starts_at: string
+          status: Database["public"]["Enums"]["booking_status"]
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          cancelled_reason?: string | null
+          care_amount: number
+          carer_fee_amount: number
+          carer_fee_pct: number
+          carer_net_amount: number
+          client_fee_amount: number
+          client_fee_pct: number
+          client_id: string
+          client_notes?: string | null
+          completed_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          ends_at: string
+          hourly_rate: number
+          hours: number
+          id?: string
+          payment_id?: string | null
+          professional_id: string
+          starts_at: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          cancelled_reason?: string | null
+          care_amount?: number
+          carer_fee_amount?: number
+          carer_fee_pct?: number
+          carer_net_amount?: number
+          client_fee_amount?: number
+          client_fee_pct?: number
+          client_id?: string
+          client_notes?: string | null
+          completed_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          ends_at?: string
+          hourly_rate?: number
+          hours?: number
+          id?: string
+          payment_id?: string | null
+          professional_id?: string
+          starts_at?: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professional_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professional_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compliance_documents: {
         Row: {
           created_at: string
@@ -154,34 +258,40 @@ export type Database = {
           client_id: string
           client_notes: string | null
           created_at: string
+          duration_minutes: number
           id: string
           payment_id: string | null
           professional_id: string
           scheduled_at: string | null
           status: Database["public"]["Enums"]["interview_status"]
           updated_at: string
+          video_url: string | null
         }
         Insert: {
           client_id: string
           client_notes?: string | null
           created_at?: string
+          duration_minutes?: number
           id?: string
           payment_id?: string | null
           professional_id: string
           scheduled_at?: string | null
           status?: Database["public"]["Enums"]["interview_status"]
           updated_at?: string
+          video_url?: string | null
         }
         Update: {
           client_id?: string
           client_notes?: string | null
           created_at?: string
+          duration_minutes?: number
           id?: string
           payment_id?: string | null
           professional_id?: string
           scheduled_at?: string | null
           status?: Database["public"]["Enums"]["interview_status"]
           updated_at?: string
+          video_url?: string | null
         }
         Relationships: [
           {
@@ -263,6 +373,64 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payouts: {
+        Row: {
+          amount: number
+          booking_id: string
+          created_at: string
+          id: string
+          paid_at: string | null
+          professional_id: string
+          provider: Database["public"]["Enums"]["payment_provider"]
+          status: Database["public"]["Enums"]["payout_status"]
+          stripe_transfer_id: string | null
+        }
+        Insert: {
+          amount: number
+          booking_id: string
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          professional_id: string
+          provider: Database["public"]["Enums"]["payment_provider"]
+          status?: Database["public"]["Enums"]["payout_status"]
+          stripe_transfer_id?: string | null
+        }
+        Update: {
+          amount?: number
+          booking_id?: string
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          professional_id?: string
+          provider?: Database["public"]["Enums"]["payment_provider"]
+          status?: Database["public"]["Enums"]["payout_status"]
+          stripe_transfer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payouts_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payouts_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professional_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payouts_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professional_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -366,9 +534,11 @@ export type Database = {
           languages: string[]
           location: string
           nmc_pin: string | null
+          payouts_enabled: boolean
           photo_url: string | null
           region: string
           status: Database["public"]["Enums"]["professional_status"]
+          stripe_account_id: string | null
           tier: Database["public"]["Enums"]["professional_tier"]
           updated_at: string
           years_experience: number
@@ -393,9 +563,11 @@ export type Database = {
           languages?: string[]
           location?: string
           nmc_pin?: string | null
+          payouts_enabled?: boolean
           photo_url?: string | null
           region?: string
           status?: Database["public"]["Enums"]["professional_status"]
+          stripe_account_id?: string | null
           tier?: Database["public"]["Enums"]["professional_tier"]
           updated_at?: string
           years_experience?: number
@@ -420,9 +592,11 @@ export type Database = {
           languages?: string[]
           location?: string
           nmc_pin?: string | null
+          payouts_enabled?: boolean
           photo_url?: string | null
           region?: string
           status?: Database["public"]["Enums"]["professional_status"]
+          stripe_account_id?: string | null
           tier?: Database["public"]["Enums"]["professional_tier"]
           updated_at?: string
           years_experience?: number
@@ -753,6 +927,72 @@ export type Database = {
       }
     }
     Functions: {
+      accept_booking: {
+        Args: { p_booking_id: string }
+        Returns: {
+          cancelled_reason: string | null
+          care_amount: number
+          carer_fee_amount: number
+          carer_fee_pct: number
+          carer_net_amount: number
+          client_fee_amount: number
+          client_fee_pct: number
+          client_id: string
+          client_notes: string | null
+          completed_at: string | null
+          confirmed_at: string | null
+          created_at: string
+          ends_at: string
+          hourly_rate: number
+          hours: number
+          id: string
+          payment_id: string | null
+          professional_id: string
+          starts_at: string
+          status: Database["public"]["Enums"]["booking_status"]
+          total_amount: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "bookings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      cancel_booking: {
+        Args: { p_booking_id: string; p_reason?: string }
+        Returns: {
+          cancelled_reason: string | null
+          care_amount: number
+          carer_fee_amount: number
+          carer_fee_pct: number
+          carer_net_amount: number
+          client_fee_amount: number
+          client_fee_pct: number
+          client_id: string
+          client_notes: string | null
+          completed_at: string | null
+          confirmed_at: string | null
+          created_at: string
+          ends_at: string
+          hourly_rate: number
+          hours: number
+          id: string
+          payment_id: string | null
+          professional_id: string
+          starts_at: string
+          status: Database["public"]["Enums"]["booking_status"]
+          total_amount: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "bookings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       compute_compliance: {
         Args: { p_professional_id: string }
         Returns: undefined
@@ -788,6 +1028,12 @@ export type Database = {
         | "temporary"
         | "long_term"
       availability_status: "available" | "limited" | "unavailable"
+      booking_status:
+        | "proposed"
+        | "confirmed"
+        | "completed"
+        | "cancelled"
+        | "disputed"
       care_category:
         | "live_in"
         | "day"
@@ -843,8 +1089,10 @@ export type Database = {
         | "interview_fee"
         | "placement_fee"
         | "retainer"
+        | "booking"
       payment_provider: "stripe" | "test_bypass" | "manual"
       payment_status: "pending" | "paid" | "failed" | "refunded"
+      payout_status: "pending" | "paid" | "failed"
       placement_status: "pending" | "active" | "ended" | "replaced"
       professional_kind: "carer" | "nurse"
       professional_status:
@@ -999,6 +1247,13 @@ export const Constants = {
         "long_term",
       ],
       availability_status: ["available", "limited", "unavailable"],
+      booking_status: [
+        "proposed",
+        "confirmed",
+        "completed",
+        "cancelled",
+        "disputed",
+      ],
       care_category: [
         "live_in",
         "day",
@@ -1059,9 +1314,11 @@ export const Constants = {
         "interview_fee",
         "placement_fee",
         "retainer",
+        "booking",
       ],
       payment_provider: ["stripe", "test_bypass", "manual"],
       payment_status: ["pending", "paid", "failed", "refunded"],
+      payout_status: ["pending", "paid", "failed"],
       placement_status: ["pending", "active", "ended", "replaced"],
       professional_kind: ["carer", "nurse"],
       professional_status: [

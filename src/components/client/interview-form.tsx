@@ -35,14 +35,14 @@ export function InterviewRequestForm({
         />
       </div>
       <Button type="submit" disabled={pending} className="w-full">
-        {pending ? "Redirecting…" : "Request interview (£15)"}
+        {pending ? "Sending…" : "Request a free meet & greet"}
       </Button>
       {state?.error && (
         <p className="text-[13px] text-red-700 text-center">{state.error}</p>
       )}
       <p className="text-[13px] text-muted text-center">
-        You&apos;ll be taken to secure checkout. We only pass on your notes once
-        payment is confirmed.
+        Completely free, with no obligation. Our team will coordinate a time
+        that suits you both, by video or in person.
       </p>
     </form>
   );

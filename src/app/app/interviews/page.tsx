@@ -10,17 +10,9 @@ import {
 } from "@/components/client/shared";
 
 const BANNERS: Record<string, { tone: "success" | "warn"; text: string }> = {
-  "test-requested": {
+  requested: {
     tone: "success",
-    text: "Interview request created. Payment was completed via the test bypass.",
-  },
-  success: {
-    tone: "success",
-    text: "Payment received. Your interview request has been sent.",
-  },
-  cancelled: {
-    tone: "warn",
-    text: "Checkout was cancelled. No interview request was made and you haven't been charged.",
+    text: "Request sent. The team will coordinate a time that works for you both.",
   },
 };
 
@@ -37,7 +29,9 @@ export default async function InterviewsPage({
 
   const { data: interviews } = await supabase
     .from("interview_requests")
-    .select("id, professional_id, status, scheduled_at, client_notes, created_at")
+    .select(
+      "id, professional_id, status, scheduled_at, client_notes, created_at, video_url, duration_minutes"
+    )
     .order("created_at", { ascending: false });
 
   const rows = interviews ?? [];
@@ -58,17 +52,17 @@ export default async function InterviewsPage({
   return (
     <div>
       <PageHeading
-        eyebrow="Interviews"
-        title="Your interview requests"
-        intro="Each interview costs £15 and lets you meet a professional before committing to a placement."
+        eyebrow="Meet & greets"
+        title="Your meet & greets"
+        intro="Every meet & greet is free: a relaxed conversation, by video or in person, before you book any care."
       />
 
       {banner && <Banner tone={banner.tone}>{banner.text}</Banner>}
 
       {rows.length === 0 ? (
         <EmptyState
-          title="No interview requests yet"
-          body="Unlock a profile you like, then request an interview from their profile page to arrange a conversation."
+          title="No meet & greets yet"
+          body="Find a profile you like, then request a free meet & greet from their profile page. We'll coordinate a time."
           action={
             <Link
               href="/app/search"
@@ -110,7 +104,20 @@ export default async function InterviewsPage({
                       Requested {formatDate(iv.created_at)}
                       {iv.scheduled_at &&
                         ` · Scheduled for ${formatDateTime(iv.scheduled_at)}`}
+                      {iv.duration_minutes
+                        ? ` · ${iv.duration_minutes} minutes`
+                        : ""}
                     </p>
+                    {iv.video_url && (
+                      <a
+                        href={iv.video_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block mt-2 text-[14.5px] font-semibold text-green hover:text-green-dark"
+                      >
+                        Join video call →
+                      </a>
+                    )}
                     {iv.client_notes && (
                       <p className="text-[14.5px] text-body mt-3 bg-sand/60 rounded-xl px-4 py-2.5">
                         &ldquo;{iv.client_notes}&rdquo;

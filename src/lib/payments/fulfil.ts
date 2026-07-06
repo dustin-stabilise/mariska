@@ -13,7 +13,7 @@ type Provider = "stripe" | "test_bypass" | "manual";
 
 export async function recordPayment(opts: {
   userId: string;
-  kind: "credit_pack" | "interview_fee" | "placement_fee" | "retainer";
+  kind: "credit_pack" | "interview_fee" | "placement_fee" | "retainer" | "booking";
   amount: number;
   provider: Provider;
   status?: "pending" | "paid";
@@ -68,11 +68,12 @@ export async function grantCreditPack(clientId: string, paymentId: string) {
   if (error) throw new Error(`grantCreditPack: ${error.message}`);
 }
 
-/** Paid interview request: create the request row. */
+/** Create an interview request. Free meet-and-greet under DR-0001; paymentId
+ * only present for legacy paid requests. */
 export async function createInterviewRequest(opts: {
   clientId: string;
   professionalId: string;
-  paymentId: string;
+  paymentId?: string;
   notes?: string;
 }) {
   const db = createAdminClient();
@@ -81,7 +82,7 @@ export async function createInterviewRequest(opts: {
     .insert({
       client_id: opts.clientId,
       professional_id: opts.professionalId,
-      payment_id: opts.paymentId,
+      payment_id: opts.paymentId ?? null,
       client_notes: opts.notes ?? null,
     })
     .select()

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { brand } from "@/lib/brand";
-import { PRICING, formatGBP } from "@/lib/pricing";
+import { COMMISSION, bookingAmounts, formatGBP } from "@/lib/pricing";
 
 export const metadata: Metadata = {
   title: "How it works",
-  description: `How ${brand.name} works for families: search vetted carers and nurses, unlock full profiles, interview through the platform and engage directly.`,
+  description: `How ${brand.name} works for families: browse full vetted carer and nurse profiles for free, meet for free, then book and pay through the platform.`,
 };
 
 const HATCH_12 =
@@ -27,7 +27,9 @@ function VettingCard({
 }
 
 export default function HowItWorksPage() {
-  const p = PRICING;
+  // Worked example: one hour with a carer whose rate is £20/hr.
+  const exampleRate = 2000;
+  const example = bookingAmounts(1, exampleRate);
 
   return (
     <>
@@ -40,8 +42,8 @@ export default function HowItWorksPage() {
           Finding the right carer, made simple
         </h1>
         <p className="mx-auto max-w-[620px] text-[19px] leading-[1.6] text-body">
-          Four clear steps from a free account to the moment care begins, with
-          you in control the whole way through.
+          Four clear steps from a free account to ongoing care, with you in
+          control the whole way through.
         </p>
       </section>
 
@@ -54,13 +56,14 @@ export default function HowItWorksPage() {
             </span>
             <div>
               <h3 className="mb-[10px] font-serif text-[25px] font-medium text-ink">
-                Tell us what you need &amp; search
+                Create a free account &amp; browse
               </h3>
               <p className="text-[15.5px] leading-[1.6] text-muted">
-                Create a free account and tell us about the care you&rsquo;re
-                looking for. Then search vetted carers and nurses near you.
-                Previews show first name, location, years of experience, care
-                type and availability.
+                Tell us about the care you&rsquo;re looking for, then browse
+                full profiles of vetted carers and nurses near you, completely
+                free. See qualifications, references, verification status,
+                rates, interests and a video introduction. No credits, no
+                unlock fees.
               </p>
             </div>
             <div
@@ -78,22 +81,19 @@ export default function HowItWorksPage() {
             </span>
             <div className="lg:order-1">
               <h3 className="mb-[10px] font-serif text-[25px] font-medium text-ink">
-                Unlock full profiles
+                Meet for free
               </h3>
               <p className="text-[15.5px] leading-[1.6] text-muted">
-                Buy credits to unlock the profiles that stand out:{" "}
-                {formatGBP(p.creditPack.amount)} for {p.creditPack.credits}{" "}
-                unlocks. See full qualifications, references, verification
-                status and a video introduction. Unlocked profiles stay
-                accessible for {p.unlockDurationDays} days.
+                Found someone who feels right? Request a free meet &amp; greet
+                and we&rsquo;ll coordinate a time, by video or in person.
+                There&rsquo;s never any pressure, and you can meet more than
+                one before deciding.
               </p>
             </div>
             <div
               className={`flex aspect-[16/10] items-end rounded-2xl ${HATCH_12} p-3 lg:order-2`}
             >
-              <span className="font-mono text-[11px] text-faint">
-                carer profiles
-              </span>
+              <span className="font-mono text-[11px] text-faint">meeting</span>
             </div>
           </div>
 
@@ -103,20 +103,22 @@ export default function HowItWorksPage() {
             </span>
             <div>
               <h3 className="mb-[10px] font-serif text-[25px] font-medium text-ink">
-                Interview through the platform
+                Book and pay through the platform
               </h3>
               <p className="text-[15.5px] leading-[1.6] text-muted">
-                Request an interview for {formatGBP(p.interview.amount)} and
-                we&rsquo;ll coordinate it through the platform, by video or in
-                person. No contact details are shared before you engage, so
-                everyone stays protected. There&rsquo;s never any pressure, and
-                you can meet more than one.
+                Book the hours you need straight from your carer&rsquo;s
+                profile. You pay their rate plus a {COMMISSION.clientPct}%
+                platform fee, all handled securely by card, and you can cancel
+                flexibly. The all-in price is shown before you confirm
+                anything.
               </p>
             </div>
             <div
               className={`flex aspect-[16/10] items-end rounded-2xl ${HATCH_12} p-3`}
             >
-              <span className="font-mono text-[11px] text-faint">meeting</span>
+              <span className="font-mono text-[11px] text-faint">
+                booking &amp; payment
+              </span>
             </div>
           </div>
 
@@ -126,15 +128,13 @@ export default function HowItWorksPage() {
             </span>
             <div className="lg:order-1">
               <h3 className="mb-[10px] font-serif text-[25px] font-medium text-cream">
-                Engage directly
+                Ongoing care, same carer
               </h3>
               <p className="text-[15.5px] leading-[1.6] text-sage-light">
-                Found the right person? Pay a one-off introduction fee (
-                {formatGBP(p.placement.carer.amount)} for a carer,{" "}
-                {formatGBP(p.placement.nurse.amount)} for a nurse), then you
-                contract with and pay your carer directly. An optional{" "}
-                {formatGBP(p.retainer.amount)}/month support retainer adds
-                extra unlocks, replacement search help and priority support.
+                Keep booking the same carer for as long as you need them, from
+                a weekly visit to live-in care. Your carer keeps 85% of the
+                rate they set and is paid quickly after each visit, so the
+                relationship stays strong on both sides.
               </p>
             </div>
             <div className="flex aspect-[16/10] items-end rounded-2xl bg-[repeating-linear-gradient(135deg,#4d6a60_0_12px,#577567_12px_24px)] p-3 lg:order-2">
@@ -188,51 +188,51 @@ export default function HowItWorksPage() {
               Honest pricing
             </span>
             <h2 className="mb-[18px] mt-[14px] font-serif text-[32px] font-normal leading-[1.14] text-ink sm:text-[38px]">
-              No hidden fees, ever
+              One simple fee, shown upfront
             </h2>
             <p className="mb-[22px] text-[16.5px] leading-[1.6] text-body">
-              Because you pay your carer directly and they keep 100% of their
-              rate, introductory care typically costs 30% or more less than a
-              managed agency. Every fee is fixed, pay-as-you-go and explained
-              upfront. No surprises on the invoice.
+              You pay your carer&rsquo;s hourly rate plus a{" "}
+              {COMMISSION.clientPct}% platform fee, and that&rsquo;s the whole
+              bill. No joining fees, no subscriptions, no unlock fees. The
+              all-in price is on every profile and every booking, so there are
+              no surprises on the invoice.
             </p>
             <ul className="flex list-none flex-col gap-[13px]">
               <li className="flex gap-3 text-[15.5px] text-[#3D4A45]">
-                <span className="text-[17px] text-green">✓</span>Free account
-                and free profile previews
+                <span className="text-[17px] text-green">✓</span>Free account,
+                free full profiles, free meet &amp; greets
               </li>
               <li className="flex gap-3 text-[15.5px] text-[#3D4A45]">
-                <span className="text-[17px] text-green">✓</span>
-                {formatGBP(p.creditPack.amount)} for {p.creditPack.credits}{" "}
-                full-profile unlocks, each valid {p.unlockDurationDays} days
+                <span className="text-[17px] text-green">✓</span>Pay only when
+                you book: your carer&rsquo;s rate + {COMMISSION.clientPct}%
               </li>
               <li className="flex gap-3 text-[15.5px] text-[#3D4A45]">
-                <span className="text-[17px] text-green">✓</span>
-                {formatGBP(p.interview.amount)} per interview request,
-                coordinated by us
+                <span className="text-[17px] text-green">✓</span>Secure card
+                payments and clear records of every visit
               </li>
               <li className="flex gap-3 text-[15.5px] text-[#3D4A45]">
-                <span className="text-[17px] text-green">✓</span>One-off
-                introduction fee from {formatGBP(p.placement.carer.amount)} on
-                engagement
+                <span className="text-[17px] text-green">✓</span>Cancel
+                flexibly, no long contracts or tie-ins
               </li>
               <li className="flex gap-3 text-[15.5px] text-[#3D4A45]">
-                <span className="text-[17px] text-green">✓</span>No
-                finder&rsquo;s fees, no markup on care hours: carers keep 100%
-                of their rate
+                <span className="text-[17px] text-green">✓</span>Carers keep
+                85% of the rate they set, paid quickly after each visit
               </li>
             </ul>
           </div>
           <div className="rounded-3xl bg-ink p-8 text-center text-cream sm:p-11">
             <div className="mb-[14px] text-sm font-semibold uppercase tracking-[0.04em] text-sage">
-              Typical saving vs managed care
+              A worked example
             </div>
-            <div className="font-serif text-[64px] font-medium leading-none text-tan sm:text-[84px]">
-              30%+
+            <div className="font-serif text-[52px] font-medium leading-none text-tan sm:text-[68px]">
+              {formatGBP(example.totalAmount)}/hr
             </div>
             <p className="mt-[18px] text-[14.5px] leading-[1.6] text-sage-light">
-              while keeping the same vetted standards and a direct relationship
-              with your carer.
+              is all you pay for a carer whose rate is{" "}
+              {formatGBP(exampleRate)}/hr: their rate plus the{" "}
+              {formatGBP(example.clientFeeAmount)} platform fee. Your carer
+              keeps {formatGBP(example.carerNetAmount)} of every hour, far more
+              than the roughly half an agency would leave them.
             </p>
           </div>
         </div>
@@ -245,7 +245,7 @@ export default function HowItWorksPage() {
             Ready to start?
           </h2>
           <p className="mx-auto mb-8 max-w-[500px] text-[17px] leading-[1.6] text-body">
-            Create your free account and start searching vetted carers today.
+            Create your free account and start browsing vetted carers today.
             No obligation, and we&rsquo;re a phone call away if you&rsquo;d
             like a hand.
           </p>

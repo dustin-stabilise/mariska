@@ -123,20 +123,46 @@ export async function setTier(professionalId: string, tier: ProfessionalTier | F
 /* Interviews                                                          */
 /* ------------------------------------------------------------------ */
 
-export async function scheduleInterview(interviewId: string, datetime: string | FormData) {
+export async function scheduleInterview(
+  interviewId: string,
+  datetime: string | FormData,
+  videoUrl?: string
+) {
   await requireRole("admin");
-  const raw = datetime instanceof FormData ? formValue(datetime, "scheduledAt") : datetime;
+  const isForm = datetime instanceof FormData;
+  const raw = isForm ? formValue(datetime, "scheduledAt") : datetime;
+  const video = isForm ? formValue(datetime, "videoUrl") : videoUrl;
   const when = raw ? new Date(raw) : null;
   if (!when || Number.isNaN(when.getTime())) {
     throw new Error("scheduleInterview: invalid date/time");
   }
 
   const db = createAdminClient();
-  const { error } = await db
+  const { data: updated, error } = await db
     .from("interview_requests")
-    .update({ status: "scheduled", scheduled_at: when.toISOString() })
-    .eq("id", interviewId);
+    .update({
+      status: "scheduled",
+      scheduled_at: when.toISOString(),
+      // Only touch video_url when a link was supplied, so rescheduling
+      // without one does not wipe an existing link.
+      ...(video ? { video_url: video } : {}),
+    })
+    .eq("id", interviewId)
+    .select("client_id, professional_id, video_url")
+    .single();
   if (error) throw new Error(`scheduleInterview: ${error.message}`);
+
+  const { sendToUser } = await import("@/lib/email");
+  const { interviewScheduledEmail } = await import("@/lib/email/templates");
+  const whenText = when.toLocaleString("en-GB", {
+    dateStyle: "full",
+    timeStyle: "short",
+    timeZone: "Europe/London",
+  });
+  const email = interviewScheduledEmail(whenText, updated.video_url);
+  await sendToUser(updated.client_id, email.subject, email.html);
+  await sendToUser(updated.professional_id, email.subject, email.html);
+
   revalidatePath(ADMIN_ROOT, "layout");
 }
 
@@ -149,6 +175,40 @@ export async function completeInterview(interviewId: string, _formData?: FormDat
     .eq("id", interviewId);
   if (error) throw new Error(`completeInterview: ${error.message}`);
   revalidatePath(ADMIN_ROOT, "layout");
+}
+
+/* ------------------------------------------------------------------ */
+/* Bookings                                                            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Admin-side booking cancellation. Only proposed or confirmed bookings can
+ * be cancelled; completed and disputed ones go through other flows.
+ */
+export async function adminCancelBooking(bookingId: string, reason?: string | FormData) {
+  await requireRole("admin");
+  const reasonText = reason instanceof FormData ? formValue(reason, "reason") : reason;
+
+  const db = createAdminClient();
+  const { data: booking, error: fetchError } = await db
+    .from("bookings")
+    .select("id, status")
+    .eq("id", bookingId)
+    .single();
+  if (fetchError || !booking) throw new Error("adminCancelBooking: booking not found");
+  if (booking.status !== "proposed" && booking.status !== "confirmed") {
+    throw new Error("adminCancelBooking: only proposed or confirmed bookings can be cancelled");
+  }
+
+  const { error } = await db
+    .from("bookings")
+    .update({ status: "cancelled", cancelled_reason: reasonText ?? "Cancelled by admin" })
+    .eq("id", bookingId);
+  if (error) throw new Error(`adminCancelBooking: ${error.message}`);
+
+  revalidatePath(ADMIN_ROOT, "layout");
+  revalidatePath("/app/bookings");
+  revalidatePath("/app/pro/bookings");
 }
 
 /* ------------------------------------------------------------------ */

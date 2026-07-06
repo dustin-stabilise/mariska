@@ -5,7 +5,7 @@ import { PRICING, formatGBP } from "@/lib/pricing";
 
 export const metadata: Metadata = {
   title: "For carers & nurses",
-  description: `Join ${brand.name}: free registration, set your own rates, keep 100% of your pay and choose the clients you work with.`,
+  description: `Join ${brand.name}: free registration, set your own rates, keep 85% of every hour you work and choose the clients you work with.`,
 };
 
 const HATCH_14 =
@@ -67,8 +67,9 @@ export default function ForCarersPage() {
           </h1>
           <p className="mb-8 max-w-[480px] text-[19px] leading-[1.6] text-body">
             Choose your clients, set your own rates and work flexibly around
-            your life. Registration is free, private clients find and engage
-            you directly, and we never take a penny of your pay.
+            your life. Joining is free, clients book you through the platform,
+            and you keep 85% of the rate you set. Agencies typically keep
+            50–60%.
           </p>
           <div className="mb-8 flex flex-wrap gap-[14px]">
             <Link
@@ -86,8 +87,8 @@ export default function ForCarersPage() {
           </div>
           <div className="flex flex-wrap gap-[26px] text-sm font-semibold text-muted">
             <span className="flex items-center gap-2">
-              <span className="text-base text-green">✓</span>Keep 100% of your
-              rate
+              <span className="text-base text-green">✓</span>Set your rate,
+              keep 85%
             </span>
             <span className="flex items-center gap-2">
               <span className="text-base text-green">✓</span>You choose your
@@ -105,11 +106,11 @@ export default function ForCarersPage() {
           </div>
           <div className="absolute -bottom-[26px] -right-[22px] max-w-[210px] rounded-[18px] bg-green px-[22px] py-5 shadow-[0_18px_40px_-22px_rgba(36,53,48,0.5)]">
             <div className="font-serif text-[34px] leading-none text-tan">
-              £0
+              85%
             </div>
             <div className="mt-[6px] text-[13.5px] leading-[1.45] text-sage-light">
-              taken from your hourly pay. You&rsquo;re paid directly by your
-              client.
+              of the rate you set is yours, paid quickly after every visit
+              through the platform.
             </div>
           </div>
         </div>
@@ -127,8 +128,8 @@ export default function ForCarersPage() {
         </div>
         <div className="grid grid-cols-1 gap-[18px] sm:grid-cols-2 lg:grid-cols-3">
           <BenefitCard title="Set your own rates">
-            You decide what your skills and experience are worth. Clients pay
-            you directly, and we never take a cut.
+            You decide what your skills and experience are worth, and keep 85%
+            of every hour. Agencies typically keep half.
           </BenefitCard>
           <BenefitCard title="Choose your clients">
             Pick the people, the type of care and the hours that suit you.
@@ -151,9 +152,9 @@ export default function ForCarersPage() {
               Less admin, more caring
             </h3>
             <p className="text-[14.5px] leading-[1.55] text-sage">
-              We handle your profile, interview coordination and the paperwork
-              around introductions, so you can focus on the people you care
-              for.
+              We handle your profile, meet &amp; greet coordination, bookings,
+              payments and the records that go with them, so you can focus on
+              the people you care for.
             </p>
           </div>
         </div>
@@ -187,8 +188,9 @@ export default function ForCarersPage() {
               the right clients can find you.
             </JoinStep>
             <JoinStep number="04" title="Meet your clients">
-              Clients unlock your profile and request interviews through the
-              platform. You choose who to work with.
+              Clients find your profile, meet you for a free meet &amp; greet
+              and book your hours through the platform. You choose who to work
+              with.
             </JoinStep>
           </div>
           <div className="mt-6 rounded-2xl border border-hairline bg-sand px-[22px] py-[18px] text-center text-[14.5px] leading-[1.6] text-body">

@@ -49,15 +49,20 @@ Go-live checklist (once the Stripe account exists):
 
 ## Business rules in one place
 
-- Pricing: `src/lib/pricing.ts` (credits 5/£25, interview £15, placement
-  £350 carer / £650 nurse, retainer £50/mo incl. 5 credits, referrals
-  £25/£50/£75, unlocks last 30 days).
+- Revenue model (DR-0001, `Docs/decisions/`): on-platform commission. Carers
+  set their rates and keep 85%; clients pay the rate plus 6%. Bookings are
+  proposed by clients, accepted by carers, paid through the platform
+  (Stripe Connect destination charges when live), and paid out per completed
+  visit. Interviews are free meet-and-greets. `src/lib/pricing.ts` holds
+  `COMMISSION` + `bookingAmounts()`; legacy introduction-fee constants remain
+  only for the dormant credits/retainer code paths.
 - Compliance scoring & search visibility: `supabase/migrations/*init_schema.sql`
   (`compute_compliance`, `professional_cards` view). Red or stale-availability
   profiles drop out of search automatically.
 - Daily compliance cron: `/api/cron/compliance` (Vercel Cron, `CRON_SECRET`
-  bearer auth) — expiry reminders at 60/30/7 days + availability nudges,
-  logged in `reminder_log`.
+  bearer auth): expiry reminders at 60/30/7 days + availability nudges,
+  deduped in `reminder_log` and emailed via Resend (log mode without
+  `RESEND_API_KEY`, same pattern as the payments bypass).
 
 ## Deploying to Vercel
 

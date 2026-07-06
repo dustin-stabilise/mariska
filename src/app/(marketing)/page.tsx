@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { brand } from "@/lib/brand";
-import { PRICING, formatGBP } from "@/lib/pricing";
+import { COMMISSION, bookingAmounts, formatGBP } from "@/lib/pricing";
 
 const HATCH_14 =
   "bg-[repeating-linear-gradient(135deg,#E4D7C3_0_14px,#EADFCD_14px_28px)]";
@@ -59,7 +59,9 @@ function FaqItem({
 }
 
 export default function HomePage() {
-  const p = PRICING;
+  // Worked example for the FAQ: one hour with a £20/hr carer.
+  const exampleRate = 2000;
+  const example = bookingAmounts(1, exampleRate);
 
   return (
     <>
@@ -68,7 +70,7 @@ export default function HomePage() {
         <div>
           <div className="mb-[26px] inline-flex items-center gap-[9px] rounded-[30px] border border-hairline bg-sand px-[15px] py-[7px] text-[13.5px] font-semibold tracking-[0.01em] text-muted">
             <span className="h-[7px] w-[7px] rounded-full bg-green" />
-            Nationwide introductory care &amp; nursing
+            Nationwide private care &amp; nursing
           </div>
           <h1 className="mb-6 font-serif text-[44px] font-normal leading-[1.04] tracking-[-0.015em] text-ink sm:text-[62px]">
             Care that feels
@@ -187,8 +189,9 @@ export default function HomePage() {
               No hidden fees
             </h3>
             <p className="text-[14.5px] leading-[1.55] text-muted">
-              Clear, pay-as-you-go fees explained upfront. You pay your carer
-              directly, often saving 30%+ versus managed agencies.
+              One transparent price: your carer&rsquo;s rate plus a{" "}
+              {COMMISSION.clientPct}% platform fee, shown before you book.
+              Often 30%+ less than a managed agency.
             </p>
           </div>
           <div className="bg-green px-[26px] py-8">
@@ -361,9 +364,9 @@ export default function HomePage() {
               Build a career on your terms
             </h3>
             <p className="mb-[26px] text-[15.5px] leading-[1.6] text-body">
-              Choose your clients, set your rates and work flexibly. We
-              introduce you to private clients who value what you do, and we
-              never take a cut of your pay.
+              Choose your clients, set your rates and work flexibly. No
+              joining fees, and you keep 85% of the rate you set, paid quickly
+              after every visit. Agencies typically keep half.
             </p>
             <Link
               href="/join"
@@ -416,11 +419,11 @@ export default function HomePage() {
             />
             <FaqItem
               question={`How is ${brand.name} different from a managed care agency?`}
-              answer={`We’re an introductory platform. You search vetted, self-employed carers yourself, unlock the full profiles that stand out, interview through the platform, and engage the person who fits. Your carer works for you directly. You stay in control, build a direct relationship, and typically save 30% or more compared with a managed agency.`}
+              answer={`We’re a marketplace of vetted, self-employed carers. You browse full profiles for free, meet the people who stand out for free, and book the one who fits. Your carer works with you directly while bookings and payments run securely through the platform, so you stay in control, build a real relationship, and typically save 30% or more compared with a managed agency.`}
             />
             <FaqItem
               question="What does it cost, and are there hidden fees?"
-              answer={`No hidden fees. Creating an account and browsing profile previews is free. Unlocking full profiles costs ${formatGBP(p.creditPack.amount)} for ${p.creditPack.credits} unlocks (each stays accessible for ${p.unlockDurationDays} days), an interview request is ${formatGBP(p.interview.amount)}, and there’s a one-off introduction fee when you engage someone: ${formatGBP(p.placement.carer.amount)} for a carer, ${formatGBP(p.placement.nurse.amount)} for a nurse. After that you pay your carer directly, and they keep 100% of their rate. An optional ${formatGBP(p.retainer.amount)}/month retainer adds ${p.retainer.includedCredits} extra unlocks, replacement-search help and priority support.`}
+              answer={`No hidden fees. Creating an account, browsing full profiles and meet & greets are all free. You only pay when you book care: your carer’s hourly rate plus a ${COMMISSION.clientPct}% platform fee, paid securely by card. So a carer whose rate is ${formatGBP(exampleRate)}/hr costs ${formatGBP(example.totalAmount)}/hr all-in, and they keep ${formatGBP(example.carerNetAmount)} of it. No joining fees, no subscriptions, no unlock fees, and you can cancel flexibly.`}
             />
             <FaqItem
               question="What does ‘matched on what matters’ actually mean?"

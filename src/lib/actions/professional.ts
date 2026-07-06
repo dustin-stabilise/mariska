@@ -214,12 +214,26 @@ export async function respondToInterview(formData: FormData): Promise<void> {
   const decision = formData.get("decision") as string;
   if (!id || (decision !== "accepted" && decision !== "declined")) return;
 
-  await supabase
+  const { data: updated } = await supabase
     .from("interview_requests")
     .update({ status: decision })
     .eq("id", id)
     .eq("professional_id", user.id)
-    .eq("status", "requested");
+    .eq("status", "requested")
+    .select("client_id")
+    .maybeSingle();
+
+  if (updated && decision === "accepted") {
+    const { data: me } = await supabase
+      .from("profiles")
+      .select("first_name")
+      .eq("id", user.id)
+      .single();
+    const { sendToUser } = await import("@/lib/email");
+    const { interviewAcceptedEmail } = await import("@/lib/email/templates");
+    const email = interviewAcceptedEmail(me?.first_name ?? "Your carer");
+    await sendToUser(updated.client_id, email.subject, email.html);
+  }
 
   revalidatePath("/app/pro");
   revalidatePath("/app/pro/interviews");

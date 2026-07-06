@@ -1,99 +1,97 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/auth-helpers";
-import { PRICING, formatGBP } from "@/lib/pricing";
+import { COMMISSION, formatGBP } from "@/lib/pricing";
 import { PageHeading, Card, Stat, EmptyState } from "@/components/ui";
-import { daysUntil, formatDate, labelize } from "@/components/client/shared";
+import { formatDateTime, labelize } from "@/components/client/shared";
 
 export default async function ClientDashboard() {
   const { supabase, profile } = await requireRole("client");
   const nowIso = new Date().toISOString();
 
-  const [balanceRes, unlocksRes, interviewsRes, retainerRes] =
+  const [upcomingRes, proposedRes, interviewsRes, completedRes, recentRes] =
     await Promise.all([
-      supabase.rpc("my_credit_balance"),
       supabase
-        .from("profile_unlocks")
-        .select("professional_id, unlocked_at, expires_at")
-        .gt("expires_at", nowIso)
-        .order("unlocked_at", { ascending: false }),
+        .from("bookings")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "confirmed")
+        .gt("starts_at", nowIso),
+      supabase
+        .from("bookings")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "proposed"),
       supabase
         .from("interview_requests")
         .select("id", { count: "exact", head: true })
         .in("status", ["requested", "accepted", "scheduled"]),
       supabase
-        .from("retainer_subscriptions")
-        .select("status, current_period_end")
+        .from("bookings")
+        .select("total_amount")
+        .eq("status", "completed"),
+      supabase
+        .from("bookings")
+        .select(
+          "id, professional_id, status, starts_at, ends_at, total_amount"
+        )
         .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
+        .limit(5),
     ]);
 
-  const balance = balanceRes.data ?? 0;
-  const unlocks = unlocksRes.data ?? [];
+  const upcomingBookings = upcomingRes.count ?? 0;
+  const pendingProposals = proposedRes.count ?? 0;
   const openInterviews = interviewsRes.count ?? 0;
-  const retainer = retainerRes.data;
+  const totalSpent = (completedRes.data ?? []).reduce(
+    (sum, b) => sum + b.total_amount,
+    0
+  );
+  const recentBookings = recentRes.data ?? [];
 
-  const recentUnlocks = unlocks.slice(0, 5);
-
-  // Public card details for the recently unlocked professionals.
-  const { data: cards } = recentUnlocks.length
+  // Public card details for the professionals in recent bookings.
+  const { data: cards } = recentBookings.length
     ? await supabase
         .from("professional_cards")
-        .select("id, first_name, headline, kind")
-        .in(
-          "id",
-          recentUnlocks.map((u) => u.professional_id)
-        )
+        .select("id, first_name, kind")
+        .in("id", [...new Set(recentBookings.map((b) => b.professional_id))])
     : { data: [] };
   const cardById = new Map((cards ?? []).map((c) => [c.id, c]));
-
-  const retainerLabel =
-    retainer && retainer.status !== "cancelled"
-      ? labelize(retainer.status)
-      : "None";
 
   return (
     <div>
       <PageHeading
         eyebrow="Client dashboard"
         title={`Welcome back${profile.first_name ? `, ${profile.first_name}` : ""}`}
-        intro="Here's where your care search stands today."
+        intro="Here's where your care stands today."
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
         <Stat
-          label="Credits"
-          value={balance}
-          hint={balance === 1 ? "profile unlock left" : "profile unlocks left"}
+          label="Upcoming visits"
+          value={upcomingBookings}
+          hint="confirmed and ahead"
         />
         <Stat
-          label="Active unlocks"
-          value={unlocks.length}
-          hint={`each lasts ${PRICING.unlockDurationDays} days`}
+          label="Pending proposals"
+          value={pendingProposals}
+          hint="awaiting carer confirmation"
         />
         <Stat
-          label="Open interviews"
+          label="Meet & greets"
           value={openInterviews}
           hint="requested or scheduled"
         />
         <Stat
-          label="Retainer"
-          value={retainerLabel}
-          hint={
-            retainer?.status === "active" && retainer.current_period_end
-              ? `renews ${formatDate(retainer.current_period_end)}`
-              : `${formatGBP(PRICING.retainer.amount)}/month plan`
-          }
+          label="Total spent"
+          value={formatGBP(totalSpent)}
+          hint="on completed visits"
         />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <h2 className="font-serif text-2xl text-ink mb-4">Recent unlocks</h2>
-          {recentUnlocks.length === 0 ? (
+          <h2 className="font-serif text-2xl text-ink mb-4">Recent bookings</h2>
+          {recentBookings.length === 0 ? (
             <EmptyState
-              title="No unlocked profiles yet"
-              body="Search our vetted carers and nurses, then spend a credit to see a professional's full profile, rates and compliance record."
+              title="No bookings yet"
+              body="Browse full profiles of vetted carers and nurses for free, arrange a free meet & greet, then book care hours through the platform."
               action={
                 <Link
                   href="/app/search"
@@ -105,12 +103,12 @@ export default async function ClientDashboard() {
             />
           ) : (
             <div className="space-y-3">
-              {recentUnlocks.map((u) => {
-                const card = cardById.get(u.professional_id);
+              {recentBookings.map((b) => {
+                const card = cardById.get(b.professional_id);
                 return (
                   <Link
-                    key={u.professional_id}
-                    href={`/app/professionals/${u.professional_id}`}
+                    key={b.id}
+                    href="/app/bookings"
                     className="block bg-card border border-hairline rounded-2xl px-6 py-4 hover:border-green transition-colors"
                   >
                     <div className="flex items-center justify-between gap-4">
@@ -123,24 +121,23 @@ export default async function ClientDashboard() {
                             </span>
                           )}
                         </div>
-                        {card?.headline && (
-                          <p className="text-[14px] text-muted mt-0.5">
-                            {card.headline}
-                          </p>
-                        )}
+                        <p className="text-[14px] text-muted mt-0.5">
+                          {formatDateTime(b.starts_at)} ·{" "}
+                          {formatGBP(b.total_amount)}
+                        </p>
                       </div>
-                      <div className="text-[13px] text-faint whitespace-nowrap">
-                        {daysUntil(u.expires_at)} days left
+                      <div className="text-[13px] text-faint whitespace-nowrap capitalize">
+                        {labelize(b.status)}
                       </div>
                     </div>
                   </Link>
                 );
               })}
               <Link
-                href="/app/unlocked"
+                href="/app/bookings"
                 className="inline-block text-[14.5px] font-semibold text-green hover:text-green-dark mt-1"
               >
-                View all unlocked profiles →
+                View all bookings →
               </Link>
             </div>
           )}
@@ -150,8 +147,8 @@ export default async function ClientDashboard() {
           <Card>
             <h3 className="font-serif text-xl text-ink">Find your carer</h3>
             <p className="text-muted text-[14.5px] mt-2">
-              Browse vetted carers and nurses by category, region and
-              availability.
+              Browse full profiles of vetted carers and nurses for free, by
+              category, region and availability.
             </p>
             <Link
               href="/app/search"
@@ -161,17 +158,17 @@ export default async function ClientDashboard() {
             </Link>
           </Card>
           <Card>
-            <h3 className="font-serif text-xl text-ink">Top up credits</h3>
+            <h3 className="font-serif text-xl text-ink">My bookings</h3>
             <p className="text-muted text-[14.5px] mt-2">
-              {PRICING.creditPack.credits} profile unlocks for{" "}
-              {formatGBP(PRICING.creditPack.amount)}. See full profiles, rates
-              and compliance records.
+              Book hours and pay securely through the platform: your
+              carer&apos;s rate plus a {COMMISSION.clientPct}% platform fee,
+              nothing else.
             </p>
             <Link
-              href="/app/credits"
+              href="/app/bookings"
               className="inline-block mt-4 px-5 py-2.5 rounded-full font-semibold text-[15px] border border-hairline-strong text-ink hover:border-green hover:text-green transition-colors"
             >
-              Buy credits
+              View bookings
             </Link>
           </Card>
         </div>

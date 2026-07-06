@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/auth-helpers";
 import { confirmAvailability } from "@/lib/actions/marketplace";
-import { formatGBP } from "@/lib/pricing";
+import { connectPayouts } from "@/lib/actions/bookings";
+import { COMMISSION, formatGBP } from "@/lib/pricing";
 import {
   requiredDocsFor,
   DOC_TYPE_LABELS,
@@ -44,11 +45,28 @@ function deriveTimeSensitive(
   return { expiring, availabilityStale };
 }
 
-export default async function ProDashboard() {
-  const { supabase, user, profile } = await requireRole("professional");
+/** Mask a Stripe account id for display: keep the prefix and last four. */
+function maskAccountId(accountId: string): string {
+  if (accountId.length <= 10) return accountId;
+  return `${accountId.slice(0, 5)}…${accountId.slice(-4)}`;
+}
 
-  const [{ data: pro }, { data: docs }, interviews, placements, { data: paidReferrals }] =
-    await Promise.all([
+export default async function ProDashboard({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
+  const { supabase, user, profile } = await requireRole("professional");
+  const { status: statusParam } = await searchParams;
+
+  const [
+    { data: pro },
+    { data: docs },
+    interviews,
+    placements,
+    { data: paidReferrals },
+    { data: payoutRows },
+  ] = await Promise.all([
       supabase
         .from("professional_profiles")
         .select("*")
@@ -72,6 +90,10 @@ export default async function ProDashboard() {
         .select("reward_amount")
         .eq("referrer_id", user.id)
         .eq("status", "paid"),
+      supabase
+        .from("payouts")
+        .select("amount, status")
+        .eq("professional_id", user.id),
     ]);
 
   if (!pro) {
@@ -91,6 +113,13 @@ export default async function ProDashboard() {
     (sum, r) => sum + (r.reward_amount ?? 0),
     0
   );
+  const payouts = payoutRows ?? [];
+  const bookingEarnings = payouts
+    .filter((p) => p.status === "paid")
+    .reduce((sum, p) => sum + p.amount, 0);
+  const pendingPayouts = payouts
+    .filter((p) => p.status === "pending")
+    .reduce((sum, p) => sum + p.amount, 0);
 
   // ----- compliance checklist -------------------------------------------
   const checklist = requiredDocsFor(pro.kind).map((req) => {
@@ -132,6 +161,39 @@ export default async function ProDashboard() {
           </span>
         }
       />
+
+      {/* Payout onboarding banners */}
+      {statusParam === "test-payouts-enabled" && (
+        <Card className="mb-6 bg-sage-light border-sage">
+          <p className="text-[15px] text-body">
+            <span className="font-semibold text-ink">Payouts enabled.</span>{" "}
+            Test mode is on, so your payout account was set up instantly. You
+            can now be booked and paid through the platform.
+          </p>
+        </Card>
+      )}
+      {statusParam === "connect-return" && (
+        <Card className="mb-6 bg-sage-light border-sage">
+          <p className="text-[15px] text-body">
+            <span className="font-semibold text-ink">
+              Thanks, you&apos;re back from Stripe.
+            </span>{" "}
+            We&apos;re confirming your payout account now. This usually takes a
+            moment; check back shortly if it doesn&apos;t show as enabled yet.
+          </p>
+        </Card>
+      )}
+      {statusParam === "connect-retry" && (
+        <Card className="mb-6 border-tan bg-tan/10">
+          <p className="text-[15px] text-body">
+            <span className="font-semibold text-ink">
+              Payout setup wasn&apos;t finished.
+            </span>{" "}
+            Stripe needs a few more details before we can pay you. Pick up
+            where you left off from the &ldquo;Getting paid&rdquo; card below.
+          </p>
+        </Card>
+      )}
 
       {/* Application status banner */}
       {(pro.status === "applied" || pro.status === "in_review") && (
@@ -175,7 +237,7 @@ export default async function ProDashboard() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         <Stat
           label="Profile status"
           value={<span className="capitalize">{pro.status.replace(/_/g, " ")}</span>}
@@ -187,6 +249,15 @@ export default async function ProDashboard() {
           hint="Awaiting your response"
         />
         <Stat label="Placements" value={placementCount} hint="All time" />
+        <Stat
+          label="Booking earnings"
+          value={formatGBP(bookingEarnings)}
+          hint={
+            pendingPayouts > 0
+              ? `${formatGBP(pendingPayouts)} pending payout`
+              : "Paid out to date"
+          }
+        />
         <Stat
           label="Referral earnings"
           value={formatGBP(referralEarnings)}
@@ -273,6 +344,50 @@ export default async function ProDashboard() {
         </Card>
 
         <div className="space-y-6">
+          {/* Getting paid (Stripe Connect payouts) */}
+          <Card className={pro.payouts_enabled ? "" : "border-tan"}>
+            <h2 className="font-serif text-xl text-ink">Getting paid</h2>
+            {pro.payouts_enabled ? (
+              <>
+                <p className="mt-3">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] font-semibold bg-green/10 text-green">
+                    <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                    Payouts enabled
+                  </span>
+                </p>
+                <p className="text-[14px] text-muted mt-3">
+                  You&apos;re set up to be paid through the platform. After each
+                  completed booking we transfer {100 - COMMISSION.carerPct}% of
+                  your rate to your account.
+                </p>
+                {pro.stripe_account_id && (
+                  <p className="text-[13px] text-faint mt-2">
+                    Payout account:{" "}
+                    <span className="font-mono text-muted">
+                      {maskAccountId(pro.stripe_account_id)}
+                    </span>
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="text-[14px] text-muted mt-2">
+                  Clients book and pay through the platform. You keep{" "}
+                  {100 - COMMISSION.carerPct}% of your rate, and we pay it into
+                  your bank account via Stripe after each completed booking.
+                  Set up your payout account to start taking bookings.
+                </p>
+                <form action={connectPayouts} className="mt-4">
+                  <Button type="submit">Set up payouts</Button>
+                </form>
+                <p className="text-[13px] text-faint mt-3">
+                  Takes a few minutes with Stripe. In test mode it&apos;s
+                  enabled instantly.
+                </p>
+              </>
+            )}
+          </Card>
+
           {/* Confirm availability */}
           <Card className={availabilityStale ? "border-tan" : ""}>
             <h2 className="font-serif text-xl text-ink">Availability</h2>

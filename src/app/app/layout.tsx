@@ -7,14 +7,13 @@ const NAV = {
   client: [
     { href: "/app/dashboard", label: "Dashboard" },
     { href: "/app/search", label: "Find care" },
-    { href: "/app/unlocked", label: "Unlocked profiles" },
+    { href: "/app/bookings", label: "Bookings" },
     { href: "/app/interviews", label: "Interviews" },
-    { href: "/app/credits", label: "Credits" },
-    { href: "/app/retainer", label: "Retainer" },
   ],
   professional: [
     { href: "/app/pro", label: "Dashboard" },
     { href: "/app/pro/profile", label: "My profile" },
+    { href: "/app/pro/bookings", label: "Bookings & earnings" },
     { href: "/app/pro/documents", label: "Documents" },
     { href: "/app/pro/interviews", label: "Interviews" },
     { href: "/app/pro/referrals", label: "Referrals" },
@@ -22,6 +21,7 @@ const NAV = {
   admin: [
     { href: "/app/admin", label: "Overview" },
     { href: "/app/admin/professionals", label: "Professionals" },
+    { href: "/app/admin/bookings", label: "Bookings" },
     { href: "/app/admin/documents", label: "Document review" },
     { href: "/app/admin/interviews", label: "Interviews" },
     { href: "/app/admin/placements", label: "Placements" },

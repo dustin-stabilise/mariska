@@ -60,6 +60,11 @@ export async function signUpClient(_prev: AuthState, formData: FormData): Promis
   });
   if (error) return { error: error.message };
 
+  const { sendEmail } = await import("@/lib/email");
+  const { welcomeClientEmail } = await import("@/lib/email/templates");
+  const welcome = welcomeClientEmail(parsed.data.firstName);
+  await sendEmail({ to: parsed.data.email, ...welcome });
+
   revalidatePath("/", "layout");
   redirect("/app");
 }
@@ -111,6 +116,11 @@ export async function signUpProfessional(
     years_experience: parsed.data.yearsExperience,
   });
   if (profileError) return { error: profileError.message };
+
+  const { sendEmail } = await import("@/lib/email");
+  const { welcomeProfessionalEmail } = await import("@/lib/email/templates");
+  const welcome = welcomeProfessionalEmail(parsed.data.firstName);
+  await sendEmail({ to: parsed.data.email, ...welcome });
 
   revalidatePath("/", "layout");
   redirect("/app");

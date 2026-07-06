@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/auth-helpers";
-import { PRICING, formatGBP } from "@/lib/pricing";
+import { COMMISSION, bookingAmounts, formatGBP } from "@/lib/pricing";
 import {
   PageHeading,
   Card,
@@ -16,7 +16,7 @@ import {
   formatDateTime,
   labelize,
 } from "@/components/client/shared";
-import { UnlockButton } from "@/components/client/unlock-button";
+import { BookingForm } from "@/components/client/booking-form";
 import { InterviewRequestForm } from "@/components/client/interview-form";
 
 export default async function ProfessionalProfilePage({
@@ -25,9 +25,8 @@ export default async function ProfessionalProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { supabase, user } = await requireRole("client");
+  const { supabase } = await requireRole("client");
 
-  // Full row is only readable while the client holds an active unlock.
   const { data: pro } = await supabase
     .from("professional_profiles")
     .select("*")
@@ -35,58 +34,31 @@ export default async function ProfessionalProfilePage({
     .maybeSingle();
 
   if (!pro) {
-    // Locked (or expired / unknown id): show the public card if there is one.
-    const { data: card } = await supabase
-      .from("professional_cards")
-      .select("id, first_name, headline, kind, location, region, tier")
-      .eq("id", id)
-      .maybeSingle();
-
     return (
       <div className="max-w-2xl mx-auto">
         <EmptyState
-          title={
-            card?.first_name
-              ? `${card.first_name}'s profile is locked`
-              : "This profile is locked"
-          }
-          body={
-            card
-              ? `${card.headline ? `"${card.headline}". ` : ""}Unlock the full profile to see their bio, rates, compliance record and to request an interview. Unlocks last ${PRICING.unlockDurationDays} days.`
-              : "We couldn't find this profile, or your unlock has expired. Unlocking spends 1 credit and lasts 30 days."
-          }
+          title="Profile not found"
+          body="We couldn't find this profile. The professional may no longer be available on the platform."
           action={
-            <div className="flex flex-col items-center gap-3 w-64">
-              <UnlockButton professionalId={id} />
-              <Link
-                href="/app/search"
-                className="text-[14px] font-semibold text-muted hover:text-green"
-              >
-                Back to search
-              </Link>
-            </div>
+            <Link
+              href="/app/search"
+              className="px-5 py-2.5 rounded-full font-semibold text-[15px] bg-green text-cream hover:bg-green-dark transition-colors"
+            >
+              Back to search
+            </Link>
           }
         />
       </div>
     );
   }
 
-  const [{ data: profileRow }, { data: card }, { data: unlock }, { data: interviews }] =
+  const [{ data: profileRow }, { data: card }, { data: interviews }] =
     await Promise.all([
       supabase.from("profiles").select("first_name").eq("id", id).maybeSingle(),
       supabase
         .from("professional_cards")
         .select("first_name")
         .eq("id", id)
-        .maybeSingle(),
-      supabase
-        .from("profile_unlocks")
-        .select("expires_at")
-        .eq("client_id", user.id)
-        .eq("professional_id", id)
-        .gt("expires_at", new Date().toISOString())
-        .order("expires_at", { ascending: false })
-        .limit(1)
         .maybeSingle(),
       supabase
         .from("interview_requests")
@@ -114,7 +86,11 @@ export default async function ProfessionalProfilePage({
       pro.hourly_rate_min !== pro.hourly_rate_max
       ? `${formatGBP(pro.hourly_rate_min)}–${formatGBP(pro.hourly_rate_max)}/hr`
       : `${formatGBP(pro.hourly_rate_min ?? pro.hourly_rate_max!)}/hr`
-    : "Rates on discussion";
+    : "Rate on request";
+
+  // Worked example for the fee explainer: a 3-hour visit at their rate.
+  const bookingRate = pro.hourly_rate_min;
+  const example = bookingRate != null ? bookingAmounts(3, bookingRate) : null;
 
   // Static verification badges derived from overall compliance status.
   const verifications =
@@ -256,11 +232,56 @@ export default async function ProfessionalProfilePage({
         <div className="space-y-6">
           <Card>
             <h2 className="font-serif text-xl text-ink mb-1">
+              Book care hours
+            </h2>
+            {bookingRate != null && example ? (
+              <>
+                <p className="text-[14px] text-muted mb-4">
+                  {firstName}&apos;s rate is{" "}
+                  <span className="font-semibold text-ink">
+                    {formatGBP(bookingRate)}/hr
+                  </span>
+                  . You pay the rate plus a {COMMISSION.clientPct}% platform
+                  fee, and that&apos;s everything.
+                </p>
+                <div className="bg-sand/60 rounded-xl px-4 py-3 mb-5 text-[13.5px] text-body">
+                  <p className="font-semibold text-ink mb-1">
+                    Example: a 3-hour visit
+                  </p>
+                  <p>
+                    {formatGBP(example.careAmount)} care +{" "}
+                    {formatGBP(example.clientFeeAmount)} fee ={" "}
+                    <span className="font-semibold text-ink">
+                      {formatGBP(example.totalAmount)}
+                    </span>{" "}
+                    total.
+                  </p>
+                  <p className="mt-1 text-muted">
+                    Your carer keeps 85% of their rate (
+                    {formatGBP(example.carerNetAmount)} for this visit).
+                  </p>
+                </div>
+                <BookingForm professionalId={id} />
+              </>
+            ) : (
+              <>
+                <p className="text-[14px] text-muted mb-4">
+                  Rate on request: {firstName} hasn&apos;t published an hourly
+                  rate yet, so arrange a free meet &amp; greet first to agree
+                  one.
+                </p>
+                <BookingForm professionalId={id} disabled />
+              </>
+            )}
+          </Card>
+
+          <Card>
+            <h2 className="font-serif text-xl text-ink mb-1">
               Meet {firstName}
             </h2>
             <p className="text-[14px] text-muted mb-5">
-              A paid interview request lets you talk before committing to a
-              placement.
+              A free meet &amp; greet, by video or in person, lets you talk
+              before booking any care.
             </p>
             {activeInterview ? (
               <div className="space-y-3">
@@ -279,40 +300,12 @@ export default async function ProfessionalProfilePage({
                   href="/app/interviews"
                   className="inline-block text-[14.5px] font-semibold text-green hover:text-green-dark"
                 >
-                  Manage interviews →
+                  Manage meet &amp; greets →
                 </Link>
               </div>
             ) : (
               <InterviewRequestForm professionalId={id} firstName={firstName} />
             )}
-          </Card>
-
-          <Card>
-            <h3 className="text-[13px] font-semibold uppercase tracking-wide text-faint mb-2">
-              Your unlock
-            </h3>
-            {unlock ? (
-              <p className="text-[14.5px] text-body">
-                Full profile access until{" "}
-                <span className="font-semibold">
-                  {formatDate(unlock.expires_at)}
-                </span>
-                .
-              </p>
-            ) : (
-              <p className="text-[14.5px] text-muted">
-                Unlock details unavailable.
-              </p>
-            )}
-            <p className="text-[13.5px] text-muted mt-2">
-              Introduction fee if you go ahead:{" "}
-              {formatGBP(
-                pro.kind === "nurse"
-                  ? PRICING.placement.nurse.amount
-                  : PRICING.placement.carer.amount
-              )}{" "}
-              one-off.
-            </p>
           </Card>
         </div>
       </div>
