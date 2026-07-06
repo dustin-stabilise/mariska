@@ -1,6 +1,5 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { PRICING } from "@/lib/pricing";
 import type { Json } from "@/lib/supabase/database.types";
 
 /**
@@ -56,18 +55,6 @@ export async function markPaymentPaid(paymentId: string, paymentIntentId?: strin
   return data; // null when already fulfilled
 }
 
-/** Credit pack: +5 credits. */
-export async function grantCreditPack(clientId: string, paymentId: string) {
-  const db = createAdminClient();
-  const { error } = await db.from("credit_ledger").insert({
-    client_id: clientId,
-    delta: PRICING.creditPack.credits,
-    reason: "purchase",
-    payment_id: paymentId,
-  });
-  if (error) throw new Error(`grantCreditPack: ${error.message}`);
-}
-
 /** Create an interview request. Free meet-and-greet under DR-0001; paymentId
  * only present for legacy paid requests. */
 export async function createInterviewRequest(opts: {
@@ -89,60 +76,4 @@ export async function createInterviewRequest(opts: {
     .single();
   if (error) throw new Error(`createInterviewRequest: ${error.message}`);
   return data;
-}
-
-/** Activate the £50/mo retainer + grant this period's included credits. */
-export async function activateRetainer(opts: {
-  clientId: string;
-  provider: Provider;
-  stripeSubscriptionId?: string;
-  currentPeriodEnd?: string;
-}) {
-  const db = createAdminClient();
-  const { data: existing } = await db
-    .from("retainer_subscriptions")
-    .select("id")
-    .eq("client_id", opts.clientId)
-    .eq("status", "active")
-    .maybeSingle();
-  if (existing) return existing;
-
-  const { data, error } = await db
-    .from("retainer_subscriptions")
-    .insert({
-      client_id: opts.clientId,
-      provider: opts.provider,
-      stripe_subscription_id: opts.stripeSubscriptionId ?? null,
-      current_period_end: opts.currentPeriodEnd ?? null,
-    })
-    .select()
-    .single();
-  if (error) throw new Error(`activateRetainer: ${error.message}`);
-
-  await grantRetainerCredits(opts.clientId);
-  return data;
-}
-
-/** Monthly retainer credits (called on activation and each renewal). */
-export async function grantRetainerCredits(clientId: string) {
-  const db = createAdminClient();
-  const { error } = await db.from("credit_ledger").insert({
-    client_id: clientId,
-    delta: PRICING.retainer.includedCredits,
-    reason: "retainer_grant",
-  });
-  if (error) throw new Error(`grantRetainerCredits: ${error.message}`);
-}
-
-export async function cancelRetainer(clientId: string, stripeSubscriptionId?: string) {
-  const db = createAdminClient();
-  let query = db
-    .from("retainer_subscriptions")
-    .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
-    .eq("status", "active");
-  query = stripeSubscriptionId
-    ? query.eq("stripe_subscription_id", stripeSubscriptionId)
-    : query.eq("client_id", clientId);
-  const { error } = await query;
-  if (error) throw new Error(`cancelRetainer: ${error.message}`);
 }

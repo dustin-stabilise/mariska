@@ -26,36 +26,16 @@ export function bookingAmounts(hours: number, hourlyRate: number) {
   };
 }
 
-/** Legacy introduction-fee pricing (retired as primary revenue by DR-0001;
- * kept while the old code paths remain in the tree). */
+/** Remaining fixed prices: manual placement fees (admin tool) and referral
+ * programme rewards. The credit/retainer/interview-fee model was removed
+ * with the legacy pages (DR-0001). */
 export const PRICING = {
   currency: "gbp" as const,
-
-  /** Credit pack: 5 profile unlocks for £25. */
-  creditPack: {
-    credits: 5,
-    amount: 2500,
-    label: "5 profile unlocks",
-  },
-
-  /** Fee per interview request. */
-  interview: {
-    amount: 1500,
-    label: "Interview request",
-  },
 
   /** One-off introduction (placement) fees, by professional type. */
   placement: {
     carer: { amount: 35000, label: "Carer introduction fee" },
     nurse: { amount: 65000, label: "Nurse introduction fee" },
-  },
-
-  /** Monthly support retainer subscription. */
-  retainer: {
-    amount: 5000,
-    interval: "month" as const,
-    label: "Ongoing support retainer",
-    includedCredits: 5,
   },
 
   /** Referral payouts to professionals. */
@@ -65,8 +45,6 @@ export const PRICING = {
     nurse: 7500,
   },
 
-  /** Days an unlocked profile stays accessible. */
-  unlockDurationDays: 30,
 } as const;
 
 export function formatGBP(pence: number): string {

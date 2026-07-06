@@ -76,21 +76,11 @@ const grace = { id: null };
   const { data: fullBefore } = await c.from("professional_profiles").select("id").eq("id", grace.id);
   check("full profile freely readable (commission model)", (fullBefore ?? []).length === 1);
 
-  const { data: bal0 } = await c.rpc("my_credit_balance");
-  check("starting balance is 5", bal0 === 5, `got ${bal0}`);
-
   const { data: unlock, error: unlockErr } = await c.rpc("unlock_profile", { p_professional_id: grace.id });
-  check("unlock_profile succeeds", !unlockErr && unlock, unlockErr?.message);
-
-  const { data: bal1 } = await c.rpc("my_credit_balance");
-  check("balance now 4", bal1 === 4, `got ${bal1}`);
+  check("legacy unlock RPC still functional", !unlockErr && unlock, unlockErr?.message);
 
   const { data: fullAfter } = await c.from("professional_profiles").select("id, bio, hourly_rate_min, compliance_status").eq("id", grace.id);
   check("full profile readable after unlock", fullAfter?.length === 1 && fullAfter[0].compliance_status === "green");
-
-  await c.rpc("unlock_profile", { p_professional_id: grace.id });
-  const { data: bal2 } = await c.rpc("my_credit_balance");
-  check("re-unlock is free (still 4)", bal2 === 4, `got ${bal2}`);
 
   const { error: badUnlock } = await c.rpc("unlock_profile", { p_professional_id: "00000000-0000-0000-0000-000000000001" });
   check("unlocking unavailable profile rejected", badUnlock?.message.includes("profile_not_available"), badUnlock?.message);
@@ -106,8 +96,6 @@ const grace = { id: null };
   check("GET /app/dashboard renders", dash.status === 200 && dash.body.includes("Sign out"), `status ${dash.status}`);
   const search = await getPage("/app/search", session);
   check("GET /app/search renders with Grace", search.status === 200 && search.body.includes("Grace"), `status ${search.status}`);
-  const credits = await getPage("/app/credits", session);
-  check("GET /app/credits shows balance 4", credits.status === 200 && credits.body.includes("4"), `status ${credits.status}`);
   const profilePage = await getPage(`/app/professionals/${grace.id}`, session);
   check("GET unlocked profile page renders bio", profilePage.status === 200 && profilePage.body.includes("Grace"), `status ${profilePage.status}`);
   const adminPage = await getPage("/app/admin", session);
