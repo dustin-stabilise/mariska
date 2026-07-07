@@ -27,6 +27,7 @@ const NAV = {
     { href: "/app/admin/placements", label: "Placements" },
     { href: "/app/admin/clients", label: "Clients" },
     { href: "/app/admin/flags", label: "Safeguarding" },
+    { href: "/app/admin/staff", label: "Staff" },
   ],
 } as const;
 

@@ -395,3 +395,53 @@ export async function markReferralPaid(referralId: string, _formData?: FormData)
   if (error) throw new Error(`markReferralPaid: ${error.message}`);
   revalidatePath(ADMIN_ROOT, "layout");
 }
+
+/* ------------------------------------------------------------------ */
+/* Staff                                                               */
+/* ------------------------------------------------------------------ */
+
+export type InviteStaffState =
+  | { error?: string; created?: { email: string; password: string } }
+  | undefined;
+
+/**
+ * Provision a staff (admin) account. Until the domain/email setup lands,
+ * the generated password is shown once to the inviting admin to pass on
+ * personally; when passwordless sign-in ships, invitees can ignore it and
+ * use email codes.
+ */
+export async function inviteStaff(
+  _prev: InviteStaffState,
+  formData: FormData
+): Promise<InviteStaffState> {
+  await requireRole("admin");
+
+  const email = ((formData.get("email") as string) || "").trim().toLowerCase();
+  const firstName = ((formData.get("firstName") as string) || "").trim();
+  const lastName = ((formData.get("lastName") as string) || "").trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    return { error: "Enter a valid email address" };
+  }
+  if (!firstName) return { error: "First name is required" };
+
+  const { randomBytes } = await import("node:crypto");
+  const password = randomBytes(12).toString("base64url");
+
+  const db = createAdminClient();
+  const { error } = await db.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    app_metadata: { role: "admin" },
+    user_metadata: { first_name: firstName, last_name: lastName },
+  });
+  if (error) {
+    if (/already/i.test(error.message)) {
+      return { error: "An account with that email already exists" };
+    }
+    return { error: "Could not create the account, please try again" };
+  }
+
+  revalidatePath(`${ADMIN_ROOT}/staff`);
+  return { created: { email, password } };
+}
