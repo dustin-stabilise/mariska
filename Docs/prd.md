@@ -185,7 +185,7 @@ application/vault/earnings flows, admin vetting/compliance/bookings/
 safeguarding, automated compliance engine + daily job, simulated payments,
 one provisioned admin account.
 
-**Next (in rough order):**
+**Next (in rough order):** (superseded in detail by Docs/roadmap-v2.md, the phased plan from the 2026-07-07 product-owner review; the launch basics below still stand)
 1. **Domain** → unlocks real email sending + passwordless sign-in (built,
    parked) + professional email address.
 2. **Brand name decision** → one-file swap; check trademark ("CareMatch" has
