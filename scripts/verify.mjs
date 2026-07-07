@@ -13,7 +13,7 @@ for (const line of readFileSync("/Users/dusty/Documents/GitHub/mariska/.env.loca
 
 const URL_ = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const PUB = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-const APP = "http://localhost:3000";
+const APP = process.env.APP_URL ?? "http://localhost:3000";
 
 let pass = 0, fail = 0;
 function check(name, ok, detail = "") {
@@ -236,6 +236,62 @@ console.log("\n— booking lifecycle (propose → accept → cancel path) —");
   check("interview request created with no payment", !ivErr && iv?.payment_id === null, ivErr?.message);
   await svc.from("interview_requests").delete().eq("id", iv.id);
   await svc.from("bookings").delete().eq("id", booking.id);
+}
+
+
+// ───────────────────────────────────────────────────────────────────────────
+// Matching questionnaire (care profiles + badges)
+// ───────────────────────────────────────────────────────────────────────────
+console.log("\n— matching: care profile + personalised search —");
+{
+  const client = await login("client@example.com");
+  const svc = createClient(URL_, process.env.SUPABASE_SECRET_KEY, { auth: { persistSession: false } });
+
+  // client creates their own care profile (RLS: own row)
+  const { error: upErr } = await client.c.from("care_profiles").upsert({
+    client_id: client.session.user.id,
+    care_for: "parent",
+    care_needs: ["memory_support", "companionship"],
+    schedule: ["live_in"],
+    languages: ["English", "Igbo"],
+    interests: ["gardening", "music"],
+    personality_preference: "warm_chatty",
+    carer_gender_preference: "female",
+    has_pets: true,
+    smoking_household: false,
+  }, { onConflict: "client_id" });
+  check("client saves own care profile", !upErr, upErr?.message);
+
+  // RLS: a professional cannot read the client's care profile
+  const pro = await login("grace.carer@example.com");
+  const { data: leaked } = await pro.c.from("care_profiles").select("id");
+  check("professional cannot read care profiles", (leaked ?? []).length === 0);
+
+  // cards expose matching fields
+  const { data: cards } = await client.c.from("professional_cards")
+    .select("first_name, gender, interests, personality_style, comfortable_with");
+  const graceCard = cards?.find((c) => c.first_name === "Grace");
+  check("cards expose matching fields", graceCard?.gender === "female" && (graceCard?.interests ?? []).includes("gardening"));
+
+  // personalised search page: Grace should badge as a great match;
+  // Tom (male) should be excluded by the explicit female preference
+  const page = await getPage("/app/search", client.session);
+  check("search renders match badge", page.status === 200 && /Great match/.test(page.body), `status ${page.status}`);
+  check("search shows a shared-interest reason", /You both enjoy/.test(page.body));
+  check("gender-preference mismatch excluded (no Tom)", !/Tom/.test(page.body));
+
+  // full profile page shows what-you-share
+  const graceId = (await client.c.from("professional_cards").select("id, first_name")).data
+    ?.find((c) => c.first_name === "Grace")?.id;
+  const profilePage = await getPage(`/app/professionals/${graceId}`, client.session);
+  check("profile page renders 'What you share'", profilePage.status === 200 && /What you share/.test(profilePage.body), `status ${profilePage.status}`);
+
+  // care-profile page renders in edit mode
+  const cpPage = await getPage("/app/care-profile", client.session);
+  check("care profile page renders", cpPage.status === 200, `status ${cpPage.status}`);
+
+  // clean up so repeated runs stay deterministic
+  await svc.from("care_profiles").delete().eq("client_id", client.session.user.id);
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

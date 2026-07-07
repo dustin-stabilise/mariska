@@ -138,6 +138,71 @@ export type Database = {
           },
         ]
       }
+      care_profiles: {
+        Row: {
+          age_band: string | null
+          care_for: string
+          care_needs: string[]
+          carer_gender_preference: string
+          client_id: string
+          created_at: string
+          has_pets: boolean
+          id: string
+          interests: string[]
+          languages: string[]
+          notes: string | null
+          personality_preference: string
+          recipient_first_name: string | null
+          schedule: string[]
+          smoking_household: boolean
+          updated_at: string
+        }
+        Insert: {
+          age_band?: string | null
+          care_for?: string
+          care_needs?: string[]
+          carer_gender_preference?: string
+          client_id: string
+          created_at?: string
+          has_pets?: boolean
+          id?: string
+          interests?: string[]
+          languages?: string[]
+          notes?: string | null
+          personality_preference?: string
+          recipient_first_name?: string | null
+          schedule?: string[]
+          smoking_household?: boolean
+          updated_at?: string
+        }
+        Update: {
+          age_band?: string | null
+          care_for?: string
+          care_needs?: string[]
+          carer_gender_preference?: string
+          client_id?: string
+          created_at?: string
+          has_pets?: boolean
+          id?: string
+          interests?: string[]
+          languages?: string[]
+          notes?: string | null
+          personality_preference?: string
+          recipient_first_name?: string | null
+          schedule?: string[]
+          smoking_household?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "care_profiles_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compliance_documents: {
         Row: {
           created_at: string
@@ -520,9 +585,11 @@ export type Database = {
           availability_status: Database["public"]["Enums"]["availability_status"]
           bio: string
           care_categories: Database["public"]["Enums"]["care_category"][]
+          comfortable_with: string[]
           compliance_score: number
           compliance_status: Database["public"]["Enums"]["compliance_status"]
           created_at: string
+          gender: string | null
           headline: string
           hourly_rate_max: number | null
           hourly_rate_min: number | null
@@ -535,6 +602,7 @@ export type Database = {
           location: string
           nmc_pin: string | null
           payouts_enabled: boolean
+          personality_style: string | null
           photo_url: string | null
           region: string
           status: Database["public"]["Enums"]["professional_status"]
@@ -549,9 +617,11 @@ export type Database = {
           availability_status?: Database["public"]["Enums"]["availability_status"]
           bio?: string
           care_categories?: Database["public"]["Enums"]["care_category"][]
+          comfortable_with?: string[]
           compliance_score?: number
           compliance_status?: Database["public"]["Enums"]["compliance_status"]
           created_at?: string
+          gender?: string | null
           headline?: string
           hourly_rate_max?: number | null
           hourly_rate_min?: number | null
@@ -564,6 +634,7 @@ export type Database = {
           location?: string
           nmc_pin?: string | null
           payouts_enabled?: boolean
+          personality_style?: string | null
           photo_url?: string | null
           region?: string
           status?: Database["public"]["Enums"]["professional_status"]
@@ -578,9 +649,11 @@ export type Database = {
           availability_status?: Database["public"]["Enums"]["availability_status"]
           bio?: string
           care_categories?: Database["public"]["Enums"]["care_category"][]
+          comfortable_with?: string[]
           compliance_score?: number
           compliance_status?: Database["public"]["Enums"]["compliance_status"]
           created_at?: string
+          gender?: string | null
           headline?: string
           hourly_rate_max?: number | null
           hourly_rate_min?: number | null
@@ -593,6 +666,7 @@ export type Database = {
           location?: string
           nmc_pin?: string | null
           payouts_enabled?: boolean
+          personality_style?: string | null
           photo_url?: string | null
           region?: string
           status?: Database["public"]["Enums"]["professional_status"]
@@ -905,12 +979,18 @@ export type Database = {
             | Database["public"]["Enums"]["availability_status"]
             | null
           care_categories: Database["public"]["Enums"]["care_category"][] | null
+          comfortable_with: string[] | null
           first_name: string | null
+          gender: string | null
           headline: string | null
+          hourly_rate_max: number | null
+          hourly_rate_min: number | null
           id: string | null
+          interests: string[] | null
           kind: Database["public"]["Enums"]["professional_kind"] | null
           languages: string[] | null
           location: string | null
+          personality_style: string | null
           region: string | null
           tier: Database["public"]["Enums"]["professional_tier"] | null
           years_experience: number | null

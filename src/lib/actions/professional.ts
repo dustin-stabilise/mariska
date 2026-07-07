@@ -14,6 +14,11 @@ import {
   type DocumentType,
   type ReferralKind,
 } from "@/lib/professional-constants";
+import {
+  CARER_PERSONALITY_OPTIONS,
+  COMFORTABLE_WITH_OPTIONS,
+  INTEREST_CHIPS,
+} from "@/lib/matching";
 
 export type ProActionState = { error?: string; success?: string };
 
@@ -95,6 +100,31 @@ export async function saveProfessionalProfile(
 
   const nmcPin = str(formData, "nmc_pin");
 
+  // Matching fields: only values from the shared vocabularies are persisted.
+  const interestValues = new Set<string>(INTEREST_CHIPS.map((c) => c.value));
+  const interests = formData
+    .getAll("interests")
+    .map((v) => String(v))
+    .filter((v) => interestValues.has(v));
+
+  const comfortableValues = new Set<string>(
+    COMFORTABLE_WITH_OPTIONS.map((o) => o.value)
+  );
+  const comfortableWith = formData
+    .getAll("comfortable_with")
+    .map((v) => String(v))
+    .filter((v) => comfortableValues.has(v));
+
+  const personalityRaw = str(formData, "personality_style");
+  const personalityStyle = CARER_PERSONALITY_OPTIONS.some(
+    (o) => o.value === personalityRaw
+  )
+    ? personalityRaw
+    : null;
+
+  const genderRaw = str(formData, "gender");
+  const gender = genderRaw === "female" || genderRaw === "male" ? genderRaw : null;
+
   const { error } = await supabase
     .from("professional_profiles")
     .update({
@@ -109,7 +139,10 @@ export async function saveProfessionalProfile(
       hourly_rate_min: rateMin,
       hourly_rate_max: rateMax,
       languages: csvToArray(str(formData, "languages")),
-      interests: csvToArray(str(formData, "interests")),
+      interests,
+      gender,
+      personality_style: personalityStyle,
+      comfortable_with: comfortableWith,
       photo_url: str(formData, "photo_url") || null,
       intro_video_url: str(formData, "intro_video_url") || null,
       ...(pro.kind === "nurse" ? { nmc_pin: nmcPin || null } : {}),

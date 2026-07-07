@@ -8,8 +8,14 @@ export default async function ClientDashboard() {
   const { supabase, profile } = await requireRole("client");
   const nowIso = new Date().toISOString();
 
-  const [upcomingRes, proposedRes, interviewsRes, completedRes, recentRes] =
-    await Promise.all([
+  const [
+    upcomingRes,
+    proposedRes,
+    interviewsRes,
+    completedRes,
+    recentRes,
+    careProfileRes,
+  ] = await Promise.all([
       supabase
         .from("bookings")
         .select("id", { count: "exact", head: true })
@@ -34,6 +40,9 @@ export default async function ClientDashboard() {
         )
         .order("created_at", { ascending: false })
         .limit(5),
+      supabase
+        .from("care_profiles")
+        .select("id", { count: "exact", head: true }),
     ]);
 
   const upcomingBookings = upcomingRes.count ?? 0;
@@ -44,6 +53,7 @@ export default async function ClientDashboard() {
     0
   );
   const recentBookings = recentRes.data ?? [];
+  const hasCareProfile = (careProfileRes.count ?? 0) > 0;
 
   // Public card details for the professionals in recent bookings.
   const { data: cards } = recentBookings.length
@@ -61,6 +71,27 @@ export default async function ClientDashboard() {
         title={`Welcome back${profile.first_name ? `, ${profile.first_name}` : ""}`}
         intro="Here's where your care stands today."
       />
+
+      {!hasCareProfile && (
+        <div className="bg-sand border border-hairline rounded-2xl px-6 py-5 mb-8 flex flex-wrap items-center justify-between gap-4">
+          <div className="max-w-xl">
+            <h2 className="font-serif text-xl text-ink">
+              Tell us about your loved one
+            </h2>
+            <p className="text-[14.5px] text-body mt-1">
+              A few quick questions help us match you on what matters, from
+              shared languages to shared interests. Optional, and editable any
+              time.
+            </p>
+          </div>
+          <Link
+            href="/app/care-profile"
+            className="px-5 py-2.5 rounded-full font-semibold text-[15px] bg-green text-cream hover:bg-green-dark transition-colors whitespace-nowrap"
+          >
+            Get matched
+          </Link>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
         <Stat
@@ -156,6 +187,16 @@ export default async function ClientDashboard() {
             >
               Search professionals
             </Link>
+            {hasCareProfile && (
+              <p className="mt-3">
+                <Link
+                  href="/app/care-profile"
+                  className="text-[14px] font-semibold text-muted hover:text-green"
+                >
+                  Edit care profile →
+                </Link>
+              </p>
+            )}
           </Card>
           <Card>
             <h3 className="font-serif text-xl text-ink">My bookings</h3>

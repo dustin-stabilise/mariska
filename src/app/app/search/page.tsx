@@ -4,9 +4,11 @@ import { Constants, type Database } from "@/lib/supabase/database.types";
 import { PageHeading, Card, TierBadge, EmptyState } from "@/components/ui";
 import {
   AvailabilityPill,
+  Banner,
   Chip,
   labelize,
 } from "@/components/client/shared";
+import { computeMatch, type MatchResult } from "@/lib/matching";
 
 type CareCategory = Database["public"]["Enums"]["care_category"];
 type AvailabilityStatus = Database["public"]["Enums"]["availability_status"];
@@ -52,7 +54,37 @@ export default async function SearchPage({
     query = query.or(`region.ilike.%${safe}%,location.ilike.%${safe}%`);
   }
 
-  const { data: pros } = await query;
+  const [{ data: pros }, { data: careProfile }] = await Promise.all([
+    query,
+    supabase.from("care_profiles").select("*").maybeSingle(),
+  ]);
+
+  // Personalise: score every card against the care profile, drop explicit
+  // gender-preference mismatches, best matches first (stable sort keeps the
+  // existing tier order as the tiebreak).
+  const matchById = new Map<string, MatchResult>();
+  let cards = pros ?? [];
+  if (careProfile) {
+    cards = cards.filter((p) => {
+      const match = computeMatch(careProfile, {
+        care_categories: p.care_categories ?? [],
+        availability_options: p.availability_options ?? [],
+        languages: p.languages,
+        interests: p.interests,
+        gender: p.gender,
+        personality_style: p.personality_style,
+        comfortable_with: p.comfortable_with,
+      });
+      if (match.score === null) return false;
+      if (p.id) matchById.set(p.id, match);
+      return true;
+    });
+    cards = [...cards].sort(
+      (a, b) =>
+        (matchById.get(b.id ?? "")?.score ?? 0) -
+        (matchById.get(a.id ?? "")?.score ?? 0)
+    );
+  }
 
   const hasFilters = Boolean(kind || category || availability || region);
 
@@ -161,7 +193,28 @@ export default async function SearchPage({
         </form>
       </Card>
 
-      {!pros || pros.length === 0 ? (
+      {sp.matched === "1" && careProfile && (
+        <div className="mb-6 rounded-2xl border border-green/30 bg-green/5 px-5 py-3.5 text-[14.5px] text-body">
+          Thanks, your matches are now personalised. The best fits for{" "}
+          {careProfile.recipient_first_name || "your loved one"} appear first.
+        </div>
+      )}
+      {!careProfile && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-sand px-5 py-3.5">
+          <span className="text-[14.5px] text-body">
+            Tell us about the person who needs care and we&rsquo;ll highlight
+            the carers who genuinely fit.
+          </span>
+          <Link
+            href="/app/care-profile"
+            className="text-[14px] font-semibold text-green hover:text-green-dark whitespace-nowrap"
+          >
+            Get matched →
+          </Link>
+        </div>
+      )}
+
+      {cards.length === 0 ? (
         <EmptyState
           title="No professionals match"
           body={
@@ -183,12 +236,24 @@ export default async function SearchPage({
       ) : (
         <>
           <p className="text-[14px] text-muted mb-4">
-            {pros.length} professional{pros.length === 1 ? "" : "s"} found
+            {cards.length} professional{cards.length === 1 ? "" : "s"} found
           </p>
           <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {pros.map((p) => {
+            {cards.map((p) => {
+              const match = p.id ? matchById.get(p.id) : undefined;
               return (
                 <Card key={p.id} className="flex flex-col">
+                  {match?.badge && (
+                    <span
+                      className={`self-start mb-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12.5px] font-bold ${
+                        match.badge === "great"
+                          ? "bg-green text-cream"
+                          : "bg-sand text-[#5C5232]"
+                      }`}
+                    >
+                      {match.badge === "great" ? "Great match" : "Good match"}
+                    </span>
+                  )}
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h3 className="font-serif text-xl text-ink">
@@ -200,6 +265,20 @@ export default async function SearchPage({
                     </div>
                     <TierBadge tier={p.tier ?? "none"} />
                   </div>
+
+                  {match && match.reasons.length > 0 && (
+                    <ul className="mt-3 space-y-1">
+                      {match.reasons.map((reason) => (
+                        <li
+                          key={reason}
+                          className="flex items-start gap-2 text-[13.5px] text-body"
+                        >
+                          <span className="text-green font-bold">✓</span>
+                          {reason}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
 
                   {p.headline && (
                     <p className="text-[15px] text-body mt-3">{p.headline}</p>

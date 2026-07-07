@@ -48,7 +48,7 @@ export async function sendEmail(opts: {
   }
 }
 
-/** Emails live in auth.users, not profiles — resolve via the admin API. */
+/** Emails live in auth.users, not profiles - resolve via the admin API. */
 export async function getUserEmail(userId: string): Promise<string | null> {
   const db = createAdminClient();
   const { data, error } = await db.auth.admin.getUserById(userId);

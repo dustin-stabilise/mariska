@@ -18,6 +18,7 @@ import {
 } from "@/components/client/shared";
 import { BookingForm } from "@/components/client/booking-form";
 import { InterviewRequestForm } from "@/components/client/interview-form";
+import { INTEREST_CHIPS, chipLabel, computeMatch } from "@/lib/matching";
 
 export default async function ProfessionalProfilePage({
   params,
@@ -52,7 +53,7 @@ export default async function ProfessionalProfilePage({
     );
   }
 
-  const [{ data: profileRow }, { data: card }, { data: interviews }] =
+  const [{ data: profileRow }, { data: card }, { data: interviews }, { data: careProfile }] =
     await Promise.all([
       supabase.from("profiles").select("first_name").eq("id", id).maybeSingle(),
       supabase
@@ -65,7 +66,20 @@ export default async function ProfessionalProfilePage({
         .select("id, status, scheduled_at, created_at")
         .eq("professional_id", id)
         .order("created_at", { ascending: false }),
+      supabase.from("care_profiles").select("*").maybeSingle(),
     ]);
+
+  const match = careProfile
+    ? computeMatch(careProfile, {
+        care_categories: pro.care_categories,
+        availability_options: pro.availability_options,
+        languages: pro.languages,
+        interests: pro.interests,
+        gender: pro.gender,
+        personality_style: pro.personality_style,
+        comfortable_with: pro.comfortable_with,
+      })
+    : null;
 
   const firstName =
     profileRow?.first_name || card?.first_name || "This professional";
@@ -145,12 +159,35 @@ export default async function ProfessionalProfilePage({
                 </h3>
                 <div className="flex flex-wrap gap-1.5">
                   {pro.interests.map((i) => (
-                    <Chip key={i}>{i}</Chip>
+                    <Chip key={i}>{chipLabel(INTEREST_CHIPS, i)}</Chip>
                   ))}
                 </div>
               </>
             )}
           </Card>
+
+          {match && match.reasons.length > 0 && (
+            <Card className="border-green/30 bg-green/5">
+              <h2 className="font-serif text-xl text-ink mb-3">
+                What you share
+              </h2>
+              <ul className="space-y-2">
+                {match.reasons.map((reason) => (
+                  <li
+                    key={reason}
+                    className="flex items-start gap-2.5 text-[15px] text-body"
+                  >
+                    <span className="text-green font-bold leading-[1.5]">✓</span>
+                    {reason}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-[13px] text-muted mt-4">
+                Based on the care profile you told us about. It's never shown
+                to anyone else.
+              </p>
+            </Card>
+          )}
 
           <Card>
             <h2 className="font-serif text-xl text-ink mb-4">Care offered</h2>

@@ -1,7 +1,7 @@
 # Product Requirements Document — Kindred (working name)
 
 - **Status:** Living document. Update whenever the platform changes.
-- **Last updated:** 2026-07-06
+- **Last updated:** 2026-07-07
 - **Owners:** Dustin (build), [wife — product owner]
 - **Key decisions:** DR-0001 (revenue model) in `Docs/decisions/`
 - **Evidence base:** 14-competitor UK market research in `Docs/research/competitors/`
@@ -129,6 +129,30 @@ Staff accounts cannot be self-registered; they are provisioned deliberately
   expiry horizon.
 - Availability honesty: profiles unconfirmed for 30 days drop out of search.
 
+## 7a. Matching ("matched on what matters")
+
+A light, skippable questionnaire powers personalised matching:
+
+- **Clients** complete a "tell us about your loved one" care profile right
+  after signup (skippable; nudged from dashboard and search until done): who
+  the care is for, support needs (needs-based wording, never diagnoses),
+  schedule, languages at home, interests (shared chip vocabulary), personality
+  preference, carer gender preference, pets/smoking. A note explains why we
+  ask; nothing is shown publicly.
+- **Carers** pick from the same interest chips and add personality style,
+  optional gender, and home-compatibility (pets/smoking) in their profile
+  editor.
+- **Matching is transparent, not a black box:** a weighted overlap of shared
+  language (strongest), care-need fit, schedule, gender preference,
+  personality and interests. Results are sorted by fit and shown as a badge
+  plus reasons ("Great match · You both enjoy gardening · Speaks Polish"),
+  never a percentage. An explicit gender-preference mismatch removes the card
+  from that client's results; carers who leave gender blank are never
+  filtered. Full profiles show a "what you share" panel.
+- Vocabularies live in code (one file) so adding chips is trivial; decisions
+  on data sensitivity: needs-based wording, faith only as an optional
+  interest chip, everything optional and editable.
+
 ## 8. Billing & money movement (current state)
 
 - Booking lifecycle: proposed → accepted → paid → completed → carer payout.
@@ -171,7 +195,7 @@ one provisioned admin account.
 5. **Founding cohort:** recruit first carers in ONE region (research lesson:
    density beats national spread), gather real testimonials to replace the
    illustrative ones.
-6. **Invite-staff feature** for additional admin accounts.
+6. ~~Invite-staff feature~~ — shipped 2026-07-07 (admin dashboard → Staff).
 7. Post-launch candidates: reviews/ratings, backup-carer pools, care notes,
    council/Direct Payments channel, org accounts (see research
    recommendations #8/#12).

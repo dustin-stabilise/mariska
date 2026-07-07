@@ -59,6 +59,9 @@ type Pro = {
   tier: string;
   rateMin: number;
   rateMax: number;
+  gender: "female" | "male";
+  personality: string;
+  comfortable: string[];
 };
 
 const PROS: Pro[] = [
@@ -68,7 +71,8 @@ const PROS: Pro[] = [
     location: "Manchester", region: "North West", years: 8,
     categories: ["live_in", "dementia", "companionship"],
     options: ["live_in", "long_term", "weekends"],
-    languages: ["English", "Igbo"], interests: ["Gardening", "Musicals", "Baking"],
+    languages: ["English", "Igbo"], interests: ["gardening","music","cooking"],
+    gender: "female", personality: "warm_chatty", comfortable: ["pets"],
     tier: "gold", rateMin: 1600, rateMax: 2200,
   },
   {
@@ -77,7 +81,8 @@ const PROS: Pro[] = [
     location: "Leeds", region: "Yorkshire", years: 5,
     categories: ["night", "respite", "complex"],
     options: ["night_shifts", "part_time", "temporary"],
-    languages: ["English"], interests: ["Football", "History podcasts"],
+    languages: ["English"], interests: ["football","history","current_affairs"],
+    gender: "male", personality: "calm_quiet", comfortable: [],
     tier: "silver", rateMin: 1500, rateMax: 1900,
   },
   {
@@ -86,7 +91,8 @@ const PROS: Pro[] = [
     location: "Bristol", region: "South West", years: 12,
     categories: ["end_of_life", "dementia", "day"],
     options: ["full_time", "day_shifts", "long_term"],
-    languages: ["English", "Portuguese"], interests: ["Cooking", "Fado music", "Faith"],
+    languages: ["English", "Portuguese"], interests: ["cooking","music","faith"],
+    gender: "female", personality: "warm_chatty", comfortable: ["pets"],
     tier: "platinum", rateMin: 1800, rateMax: 2500,
   },
   {
@@ -95,7 +101,8 @@ const PROS: Pro[] = [
     location: "Norwich", region: "East of England", years: 3,
     categories: ["companionship", "respite", "day"],
     options: ["part_time", "day_shifts", "weekends"],
-    languages: ["English"], interests: ["Chess", "Birdwatching", "Radio 4"],
+    languages: ["English"], interests: ["cards_games","books","walking"],
+    gender: "male", personality: "calm_quiet", comfortable: ["pets"],
     tier: "bronze", rateMin: 1400, rateMax: 1700,
   },
   {
@@ -104,7 +111,8 @@ const PROS: Pro[] = [
     location: "Birmingham", region: "West Midlands", years: 10,
     categories: ["palliative_nurse", "complex_nurse", "general_nurse"],
     options: ["full_time", "day_shifts", "long_term"],
-    languages: ["English", "French"], interests: ["Choir", "Cycling"],
+    languages: ["English", "French"], interests: ["music","walking"],
+    gender: "female", personality: "adaptable", comfortable: [],
     tier: "platinum", rateMin: 2800, rateMax: 3800,
   },
   {
@@ -113,7 +121,8 @@ const PROS: Pro[] = [
     location: "London", region: "London", years: 7,
     categories: ["community_nurse", "dementia_nurse", "mental_health_nurse"],
     options: ["part_time", "day_shifts", "weekends"],
-    languages: ["English", "Czech"], interests: ["Yoga", "Crime novels", "Dogs"],
+    languages: ["English", "Czech"], interests: ["books","animals","walking"],
+    gender: "female", personality: "warm_chatty", comfortable: ["pets"],
     tier: "gold", rateMin: 2600, rateMax: 3400,
   },
 ];
@@ -153,6 +162,9 @@ async function main() {
       tier: p.tier,
       interview_passed_at: new Date().toISOString(),
       nmc_pin: p.kind === "nurse" ? "12A3456B" : null,
+      gender: p.gender,
+      personality_style: p.personality,
+      comfortable_with: p.comfortable,
     });
     if (proErr) throw new Error(`profile ${p.email}: ${proErr.message}`);
 

@@ -66,7 +66,7 @@ export async function signUpClient(_prev: AuthState, formData: FormData): Promis
   await sendEmail({ to: parsed.data.email, ...welcome });
 
   revalidatePath("/", "layout");
-  redirect("/app");
+  redirect("/app/care-profile?welcome=1");
 }
 
 const professionalSignupSchema = signupSchema.extend({

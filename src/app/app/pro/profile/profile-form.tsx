@@ -15,6 +15,11 @@ import {
   type CareCategory,
   type ProfessionalKind,
 } from "@/lib/professional-constants";
+import {
+  CARER_PERSONALITY_OPTIONS,
+  COMFORTABLE_WITH_OPTIONS,
+  INTEREST_CHIPS,
+} from "@/lib/matching";
 import { Button, Card } from "@/components/ui";
 
 const inputClass =
@@ -76,6 +81,9 @@ export function ProfileForm({
     hourly_rate_max: number | null;
     languages: string[];
     interests: string[];
+    gender: string | null;
+    personality_style: string | null;
+    comfortable_with: string[];
     photo_url: string | null;
     intro_video_url: string | null;
     nmc_pin: string | null;
@@ -282,13 +290,6 @@ export function ProfileForm({
             className={inputClass}
           />
         </Field>
-        <Field label="Interests" hint="Comma-separated, e.g. Gardening, Crosswords, Cooking.">
-          <input
-            name="interests"
-            defaultValue={pro.interests.join(", ")}
-            className={inputClass}
-          />
-        </Field>
         <div className="grid sm:grid-cols-2 gap-5">
           <Field label="Photo URL">
             <input
@@ -309,6 +310,83 @@ export function ProfileForm({
             />
           </Field>
         </div>
+      </Section>
+
+      <Section
+        title="Matching"
+        intro="These help us introduce you to clients you'll genuinely get on with"
+      >
+        <Field label="Interests" hint="Tick anything you'd happily chat about or do together.">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
+            {INTEREST_CHIPS.map((chip) => (
+              <label
+                key={chip.value}
+                className="flex items-center gap-2.5 rounded-xl border border-hairline px-3.5 py-2.5 text-[14.5px] text-body cursor-pointer hover:border-green has-checked:border-green has-checked:bg-green/5"
+              >
+                <input
+                  type="checkbox"
+                  name="interests"
+                  value={chip.value}
+                  defaultChecked={pro.interests.includes(chip.value)}
+                  className="accent-green w-4 h-4"
+                />
+                {chip.label}
+              </label>
+            ))}
+          </div>
+        </Field>
+        <Field label="How would clients describe you?">
+          <div className="grid sm:grid-cols-3 gap-2.5">
+            {CARER_PERSONALITY_OPTIONS.map((opt) => (
+              <label
+                key={opt.value}
+                className="flex items-center gap-2.5 rounded-xl border border-hairline px-3.5 py-2.5 text-[14.5px] text-body cursor-pointer hover:border-green has-checked:border-green has-checked:bg-green/5"
+              >
+                <input
+                  type="radio"
+                  name="personality_style"
+                  value={opt.value}
+                  defaultChecked={pro.personality_style === opt.value}
+                  className="accent-green w-4 h-4"
+                />
+                {opt.label}
+              </label>
+            ))}
+          </div>
+        </Field>
+        <Field
+          label="Gender"
+          hint="Some families ask for a specific gender for personal care. Leaving this blank never hides you from anyone."
+        >
+          <select
+            name="gender"
+            defaultValue={pro.gender ?? ""}
+            className={inputClass}
+          >
+            <option value="">Prefer not to say</option>
+            <option value="female">Female</option>
+            <option value="male">Male</option>
+          </select>
+        </Field>
+        <Field label="I'm comfortable in...">
+          <div className="grid sm:grid-cols-2 gap-2.5">
+            {COMFORTABLE_WITH_OPTIONS.map((opt) => (
+              <label
+                key={opt.value}
+                className="flex items-center gap-2.5 rounded-xl border border-hairline px-3.5 py-2.5 text-[14.5px] text-body cursor-pointer hover:border-green has-checked:border-green has-checked:bg-green/5"
+              >
+                <input
+                  type="checkbox"
+                  name="comfortable_with"
+                  value={opt.value}
+                  defaultChecked={pro.comfortable_with.includes(opt.value)}
+                  className="accent-green w-4 h-4"
+                />
+                {opt.label}
+              </label>
+            ))}
+          </div>
+        </Field>
       </Section>
 
       <div className="flex items-center gap-4">
