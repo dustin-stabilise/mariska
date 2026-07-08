@@ -13,6 +13,7 @@ import {
   AVAILABILITY_OPTIONS,
   AVAILABILITY_STATUSES,
   DOC_TYPES,
+  LIMITED_DAYS,
   REFERRAL_KINDS,
   careCategoriesFor,
   type AvailabilityOption,
@@ -21,6 +22,7 @@ import {
   type DocumentType,
   type ReferralKind,
 } from "@/lib/professional-constants";
+import { confirmAvailability } from "@/lib/actions/marketplace";
 import {
   CARER_PERSONALITY_OPTIONS,
   COMFORTABLE_WITH_OPTIONS,
@@ -202,6 +204,107 @@ export async function saveProfessionalProfile(
   revalidatePath("/app/pro");
   revalidatePath("/app/pro/profile");
   return { success: "Profile saved." };
+}
+
+/* ------------------------------------------------------------------ */
+/* Availability & time off                                             */
+/* ------------------------------------------------------------------ */
+
+export async function saveAvailability(
+  _prev: ProActionState,
+  formData: FormData
+): Promise<ProActionState> {
+  const { supabase, user } = await requireProfessional();
+
+  const status = str(formData, "availability_status");
+  if (!AVAILABILITY_STATUSES.some((s) => s.value === status)) {
+    return { error: "Please choose an availability status." };
+  }
+
+  // Days and note only apply to "limited"; anything else clears them.
+  let limitedDays: string[] = [];
+  let limitedNote: string | null = null;
+  if (status === "limited") {
+    const chosen = new Set(formData.getAll("limited_days").map((v) => String(v)));
+    limitedDays = LIMITED_DAYS.map((d) => d.value).filter((v) => chosen.has(v));
+    limitedNote = str(formData, "limited_note").slice(0, 200) || null;
+  }
+
+  const { error } = await supabase
+    .from("professional_profiles")
+    .update({
+      availability_status: status as AvailabilityStatus,
+      limited_days: limitedDays,
+      limited_note: limitedNote,
+    })
+    .eq("id", user.id);
+  if (error) return { error: error.message };
+
+  revalidatePath("/app/pro");
+  revalidatePath("/app/pro/availability");
+  return { success: "Availability saved." };
+}
+
+export async function addTimeOff(
+  _prev: ProActionState,
+  formData: FormData
+): Promise<ProActionState> {
+  const { supabase, user } = await requireProfessional();
+
+  const startsOn = str(formData, "starts_on");
+  const endsOn = str(formData, "ends_on");
+  if (!ISO_DATE.test(startsOn) || Number.isNaN(new Date(startsOn).getTime())) {
+    return { error: "Please enter a start date." };
+  }
+  if (!ISO_DATE.test(endsOn) || Number.isNaN(new Date(endsOn).getTime())) {
+    return { error: "Please enter an end date." };
+  }
+  if (endsOn < startsOn) {
+    return { error: "The end date can't be before the start date." };
+  }
+  const today = new Date().toISOString().slice(0, 10);
+  if (endsOn < today) {
+    return { error: "That time off is already in the past." };
+  }
+  const note = str(formData, "note").slice(0, 200) || null;
+
+  const { error } = await supabase.from("unavailable_dates").insert({
+    professional_id: user.id,
+    starts_on: startsOn,
+    ends_on: endsOn,
+    note,
+  });
+  if (error) return { error: error.message };
+
+  revalidatePath("/app/pro/availability");
+  return { success: "Time off added. Those dates now show as busy to families." };
+}
+
+export async function deleteTimeOff(formData: FormData): Promise<void> {
+  const { supabase, user } = await requireProfessional();
+  const id = formData.get("id") as string;
+  if (!id) return;
+
+  await supabase
+    .from("unavailable_dates")
+    .delete()
+    .eq("id", id)
+    .eq("professional_id", user.id);
+
+  revalidatePath("/app/pro/availability");
+}
+
+/** useActionState wrapper around confirmAvailability so the button can show
+ * visible "Confirmed just now" feedback instead of succeeding silently. */
+export async function confirmAvailabilityWithFeedback(
+  // Required by the useActionState signature; nothing is read from the form.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _prev: ProActionState,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _formData: FormData
+): Promise<ProActionState> {
+  await confirmAvailability();
+  return { success: "Availability confirmed." };
 }
 
 /* ------------------------------------------------------------------ */

@@ -79,6 +79,9 @@ export async function proposeBooking(
     if (msg === "professional_not_bookable") {
       return { error: "This professional isn't currently available to book" };
     }
+    if (msg === "professional_unavailable") {
+      return { error: "They're already booked or away at that time. Check their busy times and pick another slot." };
+    }
     return { error: "Could not create the booking, please try again" };
   }
 
@@ -90,9 +93,13 @@ export async function acceptBooking(formData: FormData) {
   const { supabase, user } = await requireUser();
   const bookingId = formData.get("bookingId") as string;
   if (!bookingId) return;
-  const { data: booking } = await supabase.rpc("accept_booking", {
+  const { data: booking, error: acceptError } = await supabase.rpc("accept_booking", {
     p_booking_id: bookingId,
   });
+  if (acceptError?.message.includes("booking_clash")) {
+    revalidatePath("/app/pro/bookings");
+    redirect("/app/pro/bookings?clash=1");
+  }
 
   if (booking) {
     const { data: me } = await supabase

@@ -399,5 +399,87 @@ console.log("\n— phase 2: photos, distance, care summary access —");
   await svc.from("care_profiles").delete().eq("client_id", client.session.user.id);
 }
 
+// ───────────────────────────────────────────────────────────────────────────
+// Phase 3: busy view, clash guard, one-click availability confirm
+// ───────────────────────────────────────────────────────────────────────────
+console.log("\n— phase 3: scheduling & availability —");
+{
+  const svc = createClient(URL_, process.env.SUPABASE_SECRET_KEY, { auth: { persistSession: false } });
+  const client = await login("client@example.com");
+  const grace = await login("grace.carer@example.com");
+  const gid = grace.session.user.id;
+  const cid = client.session.user.id;
+
+  const mk = (h1, h2) => {
+    const d = new Date(); d.setDate(d.getDate() + 7);
+    const s = new Date(d); s.setHours(h1, 0, 0, 0);
+    const e = new Date(d); e.setHours(h2, 0, 0, 0);
+    return { s: s.toISOString(), e: e.toISOString() };
+  };
+  const money = { hours: 2, hourly_rate: 1600, client_fee_pct: 6, carer_fee_pct: 15,
+    care_amount: 3200, client_fee_amount: 192, total_amount: 3392, carer_fee_amount: 480, carer_net_amount: 2720 };
+
+  // confirmed booking appears in the busy view (times only)
+  const t1 = mk(9, 11);
+  const { data: confirmed } = await svc.from("bookings").insert({
+    client_id: cid, professional_id: gid, status: "confirmed",
+    starts_at: t1.s, ends_at: t1.e, ...money,
+  }).select().single();
+  const { data: busy } = await client.c.from("professional_busy").select("*").eq("professional_id", gid);
+  check("confirmed booking visible in busy view", (busy ?? []).some((b) => b.kind === "booking"));
+  check("busy view exposes no client identity", busy.length === 0 || !("client_id" in busy[0]));
+
+  // overlapping proposal cannot be accepted
+  const t2 = mk(10, 12);
+  const { data: overlap } = await svc.from("bookings").insert({
+    client_id: cid, professional_id: gid, status: "proposed",
+    starts_at: t2.s, ends_at: t2.e, ...money,
+  }).select().single();
+  const { error: clashErr } = await grace.c.rpc("accept_booking", { p_booking_id: overlap.id });
+  check("accepting an overlapping booking is blocked", clashErr?.message.includes("booking_clash"), clashErr?.message);
+
+  // non-overlapping accepts fine
+  const t3 = mk(14, 16);
+  const { data: fine } = await svc.from("bookings").insert({
+    client_id: cid, professional_id: gid, status: "proposed",
+    starts_at: t3.s, ends_at: t3.e, ...money,
+  }).select().single();
+  const { data: accepted, error: fineErr } = await grace.c.rpc("accept_booking", { p_booking_id: fine.id });
+  check("non-overlapping booking accepts", !fineErr && accepted?.status === "confirmed", fineErr?.message);
+
+  // time off blocks acceptance + shows in busy view
+  const off = new Date(); off.setDate(off.getDate() + 14);
+  const offISO = off.toISOString().slice(0, 10);
+  const { error: toErr } = await grace.c.from("unavailable_dates").insert({
+    professional_id: gid, starts_on: offISO, ends_on: offISO, note: "verify time off",
+  });
+  check("professional adds time off", !toErr, toErr?.message);
+  const d4 = new Date(off); d4.setHours(9, 0, 0, 0);
+  const e4 = new Date(off); e4.setHours(11, 0, 0, 0);
+  const { data: offClash } = await svc.from("bookings").insert({
+    client_id: cid, professional_id: gid, status: "proposed",
+    starts_at: d4.toISOString(), ends_at: e4.toISOString(), ...money,
+  }).select().single();
+  const { error: offErr } = await grace.c.rpc("accept_booking", { p_booking_id: offClash.id });
+  check("time off blocks acceptance", offErr?.message.includes("booking_clash"), offErr?.message);
+
+  // one-click availability confirm (signed link, no session)
+  const { createHmac } = await import("node:crypto");
+  await svc.from("professional_profiles").update({ availability_confirmed_at: "2026-06-01T00:00:00Z" }).eq("id", gid);
+  const exp = Math.floor(Date.now() / 1000) + 3600;
+  const sig = createHmac("sha256", process.env.CRON_SECRET).update(gid + "." + exp).digest("base64url");
+  const res = await fetch(APP + "/api/availability/confirm?u=" + gid + "&e=" + exp + "&s=" + sig);
+  const body = await res.text();
+  check("one-click confirm page responds", res.status === 200 && /Availability confirmed/.test(body), String(res.status));
+  const { data: refreshed } = await svc.from("professional_profiles").select("availability_confirmed_at").eq("id", gid).single();
+  check("one-click confirm updates the timestamp", refreshed.availability_confirmed_at.startsWith(new Date().toISOString().slice(0, 7)));
+  const bad = await fetch(APP + "/api/availability/confirm?u=" + gid + "&e=" + exp + "&s=forged");
+  check("forged token rejected", (await bad.text()).includes("expired"));
+
+  // cleanup
+  await svc.from("bookings").delete().in("id", [confirmed.id, overlap.id, fine.id, offClash.id]);
+  await svc.from("unavailable_dates").delete().eq("professional_id", gid);
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

@@ -14,6 +14,7 @@ const NAV = {
     { href: "/app/pro", label: "Dashboard" },
     { href: "/app/pro/profile", label: "My profile" },
     { href: "/app/pro/bookings", label: "Bookings & earnings" },
+    { href: "/app/pro/availability", label: "Availability" },
     { href: "/app/pro/documents", label: "Documents" },
     { href: "/app/pro/interviews", label: "Interviews" },
     { href: "/app/pro/referrals", label: "Referrals" },

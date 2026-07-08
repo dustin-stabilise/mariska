@@ -149,13 +149,16 @@ export function complianceExpiryEmail(docLabel: string, daysLeft: number) {
   };
 }
 
-export function availabilityNudgeEmail() {
+export function availabilityDigestEmail(statusLabel: string, confirmUrl: string) {
   return {
-    subject: "Please confirm your availability",
+    subject: "Still available this week? One tap to confirm",
     html: layout(
-      "Are you still available?",
-      `<p>Please confirm your availability for the coming week. Profiles that haven't confirmed for 30 days are hidden from client searches.</p>
-       ${button(appLink("/app/pro"), "Confirm availability")}`
+      "Your weekly availability check",
+      `<p>Families only see carers whose availability is up to date. You're currently shown as <strong>${statusLabel}</strong>.</p>
+       <p>If that's still right, one tap keeps you visible:</p>
+       ${button(confirmUrl, "Yes, I'm still available")}
+       <p style="font-size:13px;">Something changed? <a href="${appLink("/app/pro/availability")}">Update your availability</a> instead. Profiles unconfirmed for 30 days are hidden from search.</p>`
     ),
   };
 }
+

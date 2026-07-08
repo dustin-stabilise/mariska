@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendToUser } from "@/lib/email";
 import {
-  availabilityNudgeEmail,
+  availabilityDigestEmail,
   complianceExpiryEmail,
 } from "@/lib/email/templates";
+import { availabilityConfirmUrl } from "@/lib/availability-token";
+import { AVAILABILITY_STATUSES } from "@/lib/professional-constants";
 
 const DOC_LABELS: Record<string, string> = {
   dbs: "enhanced DBS certificate",
@@ -129,12 +131,13 @@ export async function GET(request: Request) {
   /* (c) Stale availability nudges (active pros, >7 days, max 1/7d)  */
   /* -------------------------------------------------------------- */
 
+  // Weekly digest to every ACTIVE professional (one-click signed confirm
+  // link), deduped to one per 7 days via reminder_log.
   const sevenDaysAgo = new Date(Date.now() - 7 * DAY_MS).toISOString();
   const { data: stalePros, error: staleError } = await db
     .from("professional_profiles")
-    .select("id")
-    .eq("status", "active")
-    .lt("availability_confirmed_at", sevenDaysAgo);
+    .select("id, availability_status")
+    .eq("status", "active");
   if (staleError) {
     return NextResponse.json({ error: staleError.message }, { status: 500 });
   }
@@ -151,11 +154,18 @@ export async function GET(request: Request) {
     for (const r of recent ?? []) recentlyNudged.add(r.professional_id);
   }
 
+  const statusById = new Map((stalePros ?? []).map((p) => [p.id, p.availability_status]));
   const availabilityInserts = staleIds
     .filter((id) => !recentlyNudged.has(id))
     .map((id) => ({ professional_id: id, kind: "availability" }));
   for (const insert of availabilityInserts) {
-    const email = availabilityNudgeEmail();
+    const statusLabel =
+      AVAILABILITY_STATUSES.find((s) => s.value === statusById.get(insert.professional_id))
+        ?.label ?? "Available";
+    const email = availabilityDigestEmail(
+      statusLabel,
+      availabilityConfirmUrl(insert.professional_id)
+    );
     await sendToUser(insert.professional_id, email.subject, email.html);
   }
   if (availabilityInserts.length > 0) {

@@ -146,6 +146,15 @@ Staff accounts cannot be self-registered; they are provisioned deliberately
   (deduplicated, logged), weekly availability nudges, re-scoring around the
   expiry horizon.
 - Availability honesty: profiles unconfirmed for 30 days drop out of search.
+- **Scheduling (Phase 3, 2026-07-08):** confirmed bookings and
+  professional-managed time off block the calendar; accepting a clashing
+  booking is refused at the database level, and clients see a carer's busy
+  times (times only, never who) before proposing. "Limited" availability is
+  structured (which days + a note); short pop-in visits are a work pattern on
+  both sides. Every active professional gets a weekly availability digest
+  email with a one-click signed confirmation link (no login needed); the
+  dashboard confirm button shows visible feedback and the last-confirmed
+  date.
 
 ## 7a. Matching ("matched on what matters")
 

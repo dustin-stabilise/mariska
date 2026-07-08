@@ -49,6 +49,16 @@ export async function createBookingProposal(opts: {
   const hours = Math.round((ms / 3_600_000) * 100) / 100;
   if (!(hours > 0 && hours <= 24 * 14)) throw new Error("invalid_duration");
 
+  // No proposals into times the professional is already booked or away.
+  const { data: clashes } = await db
+    .from("professional_busy")
+    .select("professional_id")
+    .eq("professional_id", opts.professionalId)
+    .lt("starts_at", opts.endsAt)
+    .gt("ends_at", opts.startsAt)
+    .limit(1);
+  if (clashes && clashes.length > 0) throw new Error("professional_unavailable");
+
   const rate = pro.hourly_rate_min;
   const amounts = bookingAmounts(hours, rate);
 

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/auth-helpers";
-import { confirmAvailability } from "@/lib/actions/marketplace";
 import { connectPayouts } from "@/lib/actions/bookings";
 import { COMMISSION, formatGBP } from "@/lib/pricing";
 import {
@@ -15,6 +14,7 @@ import {
   MIN_RATED_SKILLS,
 } from "@/lib/vetting-checklist";
 import { ChecklistRow } from "@/components/pro/checklist";
+import { ConfirmAvailability } from "@/components/pro/confirm-availability";
 import { PageHeading, Card, Stat, CompliancePill, TierBadge, Button } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
@@ -354,34 +354,22 @@ export default async function ProDashboard({
           {/* Confirm availability */}
           <Card className={availabilityStale ? "border-tan" : ""}>
             <h2 className="font-serif text-xl text-ink">Availability</h2>
-            <p className="text-[14px] text-muted mt-2">
-              Last confirmed{" "}
-              <span className="font-medium text-body">
-                {formatDate(pro.availability_confirmed_at)}
-              </span>
-              . Confirming weekly keeps your profile in family searches.
-            </p>
+            <div className="mt-2">
+              <ConfirmAvailability
+                lastConfirmedLabel={formatDate(pro.availability_confirmed_at)}
+              />
+            </div>
             {availabilityStale && (
               <p className="text-[13px] text-[#7a6a3d] bg-tan/20 rounded-lg px-3 py-2 mt-3">
                 It&apos;s been more than a week. Confirm now to stay visible.
               </p>
             )}
-            <form action={confirmAvailability} className="mt-4">
-              <Button type="submit">Confirm availability</Button>
-            </form>
-            <p className="text-[13px] text-faint mt-3">
-              Status:{" "}
-              <span className="capitalize text-muted">
-                {pro.availability_status}
-              </span>. Change it on{" "}
-              <Link
-                href="/app/pro/profile"
-                className="text-green font-medium hover:text-green-dark"
-              >
-                your profile
-              </Link>
-              .
-            </p>
+            <Link
+              href="/app/pro/availability"
+              className="inline-block mt-4 text-[15px] font-semibold text-green hover:text-green-dark"
+            >
+              Manage availability &amp; time off →
+            </Link>
           </Card>
 
           {/* Clinical skills (nurses) */}

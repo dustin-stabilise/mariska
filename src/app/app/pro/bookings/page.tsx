@@ -54,8 +54,13 @@ function BookingPill({ status }: { status: string }) {
   );
 }
 
-export default async function ProBookingsPage() {
+export default async function ProBookingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ clash?: string }>;
+}) {
   const { supabase, user } = await requireRole("professional");
+  const { clash } = await searchParams;
 
   const [{ data: pro }, { data: bookingRows }, { data: payoutRows }] = await Promise.all([
     supabase
@@ -113,6 +118,19 @@ export default async function ProBookingsPage() {
         title="Bookings & earnings"
         intro={`Clients book and pay through the platform. You keep ${100 - COMMISSION.carerPct}% of your rate, paid out after each completed booking.`}
       />
+
+      {clash === "1" && (
+        <Card className="mb-6 border-tan bg-tan/10">
+          <p className="text-[15px] text-body">
+            <span className="font-semibold text-ink">
+              That booking overlaps an existing booking or time off, so it
+              wasn&apos;t accepted.
+            </span>{" "}
+            The client&apos;s request has been left as proposed. Suggest another
+            time or decline it.
+          </p>
+        </Card>
+      )}
 
       {pro && pro.hourly_rate_min === null && (
         <Card className="mb-6 bg-sage-light border-sage">

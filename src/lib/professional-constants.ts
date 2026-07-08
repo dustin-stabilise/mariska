@@ -45,6 +45,7 @@ export const AVAILABILITY_OPTIONS: {
   label: string;
 }[] = [
   { value: "live_in", label: "Live-in" },
+  { value: "visits", label: "Pop-in visits" },
   { value: "full_time", label: "Full-time" },
   { value: "part_time", label: "Part-time" },
   { value: "day_shifts", label: "Day shifts" },
@@ -62,6 +63,17 @@ export const AVAILABILITY_STATUSES: {
   { value: "available", label: "Available", hint: "Ready for new placements" },
   { value: "limited", label: "Limited", hint: "Some capacity for the right role" },
   { value: "unavailable", label: "Unavailable", hint: "Not taking new work right now" },
+];
+
+/** Days a "limited" professional can work (professional_profiles.limited_days). */
+export const LIMITED_DAYS: { value: string; label: string }[] = [
+  { value: "mon", label: "Mon" },
+  { value: "tue", label: "Tue" },
+  { value: "wed", label: "Wed" },
+  { value: "thu", label: "Thu" },
+  { value: "fri", label: "Fri" },
+  { value: "sat", label: "Sat" },
+  { value: "sun", label: "Sun" },
 ];
 
 export const DOC_TYPE_LABELS: Record<DocumentType, string> = {

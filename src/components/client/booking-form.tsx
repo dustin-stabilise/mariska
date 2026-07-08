@@ -1,24 +1,48 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import {
   proposeBooking,
   type BookingActionState,
 } from "@/lib/actions/bookings";
 import { Button } from "@/components/ui";
 
+/** A busy window from the professional_busy view - times only, no identities. */
+export type BusyRange = {
+  startsAt: string;
+  endsAt: string;
+  kind: "booking" | "time_off";
+};
+
+/** True when [starts, ends) overlaps any busy range. Advisory only - the
+ * server enforces the real clash check when the carer accepts. */
+function overlapsBusy(starts: string, ends: string, busy: BusyRange[]): boolean {
+  const s = new Date(starts).getTime();
+  const e = new Date(ends).getTime();
+  if (!Number.isFinite(s) || !Number.isFinite(e) || e <= s) return false;
+  return busy.some(
+    (b) => s < new Date(b.endsAt).getTime() && e > new Date(b.startsAt).getTime()
+  );
+}
+
 /** Client-side wrapper for the proposeBooking server action. */
 export function BookingForm({
   professionalId,
+  busy = [],
   disabled = false,
 }: {
   professionalId: string;
+  busy?: BusyRange[];
   disabled?: boolean;
 }) {
   const [state, formAction, pending] = useActionState<
     BookingActionState,
     FormData
   >(proposeBooking, undefined);
+  const [startsAt, setStartsAt] = useState("");
+  const [endsAt, setEndsAt] = useState("");
+
+  const overlaps = overlapsBusy(startsAt, endsAt, busy);
 
   const inputClass =
     "w-full rounded-xl border border-hairline-strong bg-cream px-4 py-2.5 text-[15px] text-ink focus:outline-none focus:border-green disabled:opacity-50 disabled:cursor-not-allowed";
@@ -39,6 +63,8 @@ export function BookingForm({
           type="datetime-local"
           required
           disabled={disabled}
+          value={startsAt}
+          onChange={(e) => setStartsAt(e.target.value)}
           className={inputClass}
         />
       </div>
@@ -55,9 +81,17 @@ export function BookingForm({
           type="datetime-local"
           required
           disabled={disabled}
+          value={endsAt}
+          onChange={(e) => setEndsAt(e.target.value)}
           className={inputClass}
         />
       </div>
+      {overlaps && (
+        <p className="text-[13.5px] text-[#7a6a3d] bg-tan/20 rounded-lg px-3 py-2">
+          This overlaps a time they&apos;re busy. You can still propose it, but
+          they may not be able to accept.
+        </p>
+      )}
       <div>
         <label
           htmlFor="booking-notes"

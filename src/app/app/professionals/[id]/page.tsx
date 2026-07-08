@@ -16,9 +16,58 @@ import {
   formatDateTime,
   labelize,
 } from "@/components/client/shared";
-import { BookingForm } from "@/components/client/booking-form";
+import { BookingForm, type BusyRange } from "@/components/client/booking-form";
 import { InterviewRequestForm } from "@/components/client/interview-form";
 import { INTEREST_CHIPS, chipLabel, computeMatch } from "@/lib/matching";
+
+const BUSY_ROW_CAP = 8;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function busyDay(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
+}
+
+function busyTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/** Day of month + month, e.g. "21 Jul". */
+function busyDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+  });
+}
+
+/** "Mon 14 Jul, 09:00 to 13:00" for bookings; "Away 21 to 28 Jul" for time off. */
+function describeBusy(range: BusyRange): string {
+  if (range.kind === "time_off") {
+    // The view's ends_at is exclusive midnight after the last day off.
+    const lastDay = new Date(new Date(range.endsAt).getTime() - DAY_MS);
+    const start = new Date(range.startsAt);
+    if (busyDate(range.startsAt) === busyDate(lastDay.toISOString())) {
+      return `Away ${busyDate(range.startsAt)}`;
+    }
+    const sameMonth =
+      start.getMonth() === lastDay.getMonth() &&
+      start.getFullYear() === lastDay.getFullYear();
+    const startLabel = sameMonth
+      ? start.toLocaleDateString("en-GB", { day: "numeric" })
+      : busyDate(range.startsAt);
+    return `Away ${startLabel} to ${busyDate(lastDay.toISOString())}`;
+  }
+  if (busyDay(range.startsAt) === busyDay(range.endsAt)) {
+    return `${busyDay(range.startsAt)}, ${busyTime(range.startsAt)} to ${busyTime(range.endsAt)}`;
+  }
+  return `${busyDay(range.startsAt)} ${busyTime(range.startsAt)} to ${busyDay(range.endsAt)} ${busyTime(range.endsAt)}`;
+}
 
 export default async function ProfessionalProfilePage({
   params,
@@ -53,12 +102,18 @@ export default async function ProfessionalProfilePage({
     );
   }
 
+  // Busy times: the next 8 weeks of confirmed bookings and time off. Times
+  // only - the view never exposes who the other bookings are with.
+  const now = new Date();
+  const eightWeeksOut = new Date(now.getTime() + 8 * 7 * DAY_MS);
+
   const [
     { data: profileRow },
     { data: card },
     { data: interviews },
     { data: careProfile },
     { data: photoRows },
+    { data: busyRows },
   ] = await Promise.all([
     supabase.from("profiles").select("first_name").eq("id", id).maybeSingle(),
     supabase
@@ -81,8 +136,23 @@ export default async function ProfessionalProfilePage({
       .eq("status", "approved")
       .order("position", { ascending: true })
       .limit(3),
+    supabase
+      .from("professional_busy")
+      .select("starts_at, ends_at, kind")
+      .eq("professional_id", id)
+      .gte("ends_at", now.toISOString())
+      .lte("starts_at", eightWeeksOut.toISOString())
+      .order("starts_at", { ascending: true }),
   ]);
   const photos = photoRows ?? [];
+
+  const busy: BusyRange[] = (busyRows ?? [])
+    .filter((r) => r.starts_at && r.ends_at)
+    .map((r) => ({
+      startsAt: r.starts_at!,
+      endsAt: r.ends_at!,
+      kind: r.kind === "time_off" ? ("time_off" as const) : ("booking" as const),
+    }));
 
   const match = careProfile
     ? computeMatch(careProfile, {
@@ -303,6 +373,31 @@ export default async function ProfessionalProfilePage({
             <h2 className="font-serif text-xl text-ink mb-1">
               Book care hours
             </h2>
+            <div className="bg-sand/60 rounded-xl px-4 py-3 my-4 text-[13.5px]">
+              <p className="font-semibold text-ink mb-1">
+                When they&apos;re busy
+              </p>
+              {busy.length === 0 ? (
+                <p className="text-muted">
+                  No booked times in the next few weeks.
+                </p>
+              ) : (
+                <>
+                  <ul className="space-y-0.5 text-body">
+                    {busy.slice(0, BUSY_ROW_CAP).map((range) => (
+                      <li key={`${range.kind}-${range.startsAt}`}>
+                        {describeBusy(range)}
+                      </li>
+                    ))}
+                  </ul>
+                  {busy.length > BUSY_ROW_CAP && (
+                    <p className="text-muted mt-1">
+                      +{busy.length - BUSY_ROW_CAP} more
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
             {bookingRate != null && example ? (
               <>
                 <p className="text-[14px] text-muted mb-4">
@@ -330,7 +425,7 @@ export default async function ProfessionalProfilePage({
                     {formatGBP(example.carerNetAmount)} for this visit).
                   </p>
                 </div>
-                <BookingForm professionalId={id} />
+                <BookingForm professionalId={id} busy={busy} />
               </>
             ) : (
               <>
@@ -339,7 +434,7 @@ export default async function ProfessionalProfilePage({
                   rate yet, so arrange a free meet &amp; greet first to agree
                   one.
                 </p>
-                <BookingForm professionalId={id} disabled />
+                <BookingForm professionalId={id} busy={busy} disabled />
               </>
             )}
           </Card>

@@ -150,8 +150,14 @@ export type Database = {
           id: string
           interests: string[]
           languages: string[]
+          latitude: number | null
+          live_in_bathroom: boolean
+          live_in_room: boolean
+          longitude: number | null
           notes: string | null
           personality_preference: string
+          postcode: string | null
+          radius_miles: number
           recipient_first_name: string | null
           schedule: string[]
           smoking_household: boolean
@@ -168,8 +174,14 @@ export type Database = {
           id?: string
           interests?: string[]
           languages?: string[]
+          latitude?: number | null
+          live_in_bathroom?: boolean
+          live_in_room?: boolean
+          longitude?: number | null
           notes?: string | null
           personality_preference?: string
+          postcode?: string | null
+          radius_miles?: number
           recipient_first_name?: string | null
           schedule?: string[]
           smoking_household?: boolean
@@ -186,8 +198,14 @@ export type Database = {
           id?: string
           interests?: string[]
           languages?: string[]
+          latitude?: number | null
+          live_in_bathroom?: boolean
+          live_in_room?: boolean
+          longitude?: number | null
           notes?: string | null
           personality_preference?: string
+          postcode?: string | null
+          radius_miles?: number
           recipient_first_name?: string | null
           schedule?: string[]
           smoking_household?: boolean
@@ -596,6 +614,7 @@ export type Database = {
           contract_accepted_at: string | null
           contract_accepted_ip: string | null
           contract_version: string | null
+          cooking_skill: string | null
           created_at: string
           gender: string | null
           headline: string
@@ -607,12 +626,17 @@ export type Database = {
           intro_video_url: string | null
           kind: Database["public"]["Enums"]["professional_kind"]
           languages: string[]
+          latitude: number | null
+          limited_days: string[]
+          limited_note: string | null
           location: string
+          longitude: number | null
           nmc_pin: string | null
           nmc_verified_at: string | null
           payouts_enabled: boolean
           personality_style: string | null
           photo_url: string | null
+          postcode: string | null
           region: string
           rtw_checked_at: string | null
           rtw_expires_at: string | null
@@ -638,6 +662,7 @@ export type Database = {
           contract_accepted_at?: string | null
           contract_accepted_ip?: string | null
           contract_version?: string | null
+          cooking_skill?: string | null
           created_at?: string
           gender?: string | null
           headline?: string
@@ -649,12 +674,17 @@ export type Database = {
           intro_video_url?: string | null
           kind: Database["public"]["Enums"]["professional_kind"]
           languages?: string[]
+          latitude?: number | null
+          limited_days?: string[]
+          limited_note?: string | null
           location?: string
+          longitude?: number | null
           nmc_pin?: string | null
           nmc_verified_at?: string | null
           payouts_enabled?: boolean
           personality_style?: string | null
           photo_url?: string | null
+          postcode?: string | null
           region?: string
           rtw_checked_at?: string | null
           rtw_expires_at?: string | null
@@ -680,6 +710,7 @@ export type Database = {
           contract_accepted_at?: string | null
           contract_accepted_ip?: string | null
           contract_version?: string | null
+          cooking_skill?: string | null
           created_at?: string
           gender?: string | null
           headline?: string
@@ -691,12 +722,17 @@ export type Database = {
           intro_video_url?: string | null
           kind?: Database["public"]["Enums"]["professional_kind"]
           languages?: string[]
+          latitude?: number | null
+          limited_days?: string[]
+          limited_note?: string | null
           location?: string
+          longitude?: number | null
           nmc_pin?: string | null
           nmc_verified_at?: string | null
           payouts_enabled?: boolean
           personality_style?: string | null
           photo_url?: string | null
+          postcode?: string | null
           region?: string
           rtw_checked_at?: string | null
           rtw_expires_at?: string | null
@@ -713,6 +749,61 @@ export type Database = {
             foreignKeyName: "professional_profiles_id_fkey"
             columns: ["id"]
             isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profile_photos: {
+        Row: {
+          created_at: string
+          id: string
+          position: number
+          professional_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          position?: number
+          professional_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          position?: number
+          professional_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_photos_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professional_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_photos_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professional_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_photos_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1036,8 +1127,59 @@ export type Database = {
           },
         ]
       }
+      unavailable_dates: {
+        Row: {
+          created_at: string
+          ends_on: string
+          id: string
+          note: string | null
+          professional_id: string
+          starts_on: string
+        }
+        Insert: {
+          created_at?: string
+          ends_on: string
+          id?: string
+          note?: string | null
+          professional_id: string
+          starts_on: string
+        }
+        Update: {
+          created_at?: string
+          ends_on?: string
+          id?: string
+          note?: string | null
+          professional_id?: string
+          starts_on?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unavailable_dates_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professional_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unavailable_dates_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professional_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
+      professional_busy: {
+        Row: {
+          ends_at: string | null
+          kind: string | null
+          professional_id: string | null
+          starts_at: string | null
+        }
+        Relationships: []
+      }
       professional_cards: {
         Row: {
           availability_options:
@@ -1046,8 +1188,10 @@ export type Database = {
           availability_status:
             | Database["public"]["Enums"]["availability_status"]
             | null
+          can_drive: boolean | null
           care_categories: Database["public"]["Enums"]["care_category"][] | null
           comfortable_with: string[] | null
+          cooking_skill: string | null
           first_name: string | null
           gender: string | null
           headline: string | null
@@ -1057,8 +1201,11 @@ export type Database = {
           interests: string[] | null
           kind: Database["public"]["Enums"]["professional_kind"] | null
           languages: string[] | null
+          latitude: number | null
           location: string | null
+          longitude: number | null
           personality_style: string | null
+          photo_path: string | null
           region: string | null
           tier: Database["public"]["Enums"]["professional_tier"] | null
           years_experience: number | null
@@ -1124,6 +1271,7 @@ export type Database = {
           contract_accepted_at: string | null
           contract_accepted_ip: string | null
           contract_version: string | null
+          cooking_skill: string | null
           created_at: string
           gender: string | null
           headline: string
@@ -1135,12 +1283,17 @@ export type Database = {
           intro_video_url: string | null
           kind: Database["public"]["Enums"]["professional_kind"]
           languages: string[]
+          latitude: number | null
+          limited_days: string[]
+          limited_note: string | null
           location: string
+          longitude: number | null
           nmc_pin: string | null
           nmc_verified_at: string | null
           payouts_enabled: boolean
           personality_style: string | null
           photo_url: string | null
+          postcode: string | null
           region: string
           rtw_checked_at: string | null
           rtw_expires_at: string | null
@@ -1226,6 +1379,7 @@ export type Database = {
         | "weekends"
         | "temporary"
         | "long_term"
+        | "visits"
       availability_status: "available" | "limited" | "unavailable"
       booking_status:
         | "proposed"
@@ -1446,6 +1600,7 @@ export const Constants = {
         "weekends",
         "temporary",
         "long_term",
+        "visits",
       ],
       availability_status: ["available", "limited", "unavailable"],
       booking_status: [

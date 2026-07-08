@@ -126,7 +126,7 @@ The registration/document overhaul for both professions.
 - Proximity: **default 15 miles, client-adjustable 5-50, live-in exempt**.
 - Languages: **the ~20-language UK list + an "Other" free entry**.
 
-## Phase 3 — Scheduling & availability
+## Phase 3 — Scheduling & availability ✅ SHIPPED 2026-07-08
 
 - **Calendar blocking:** when a booking is confirmed, those dates/times are
   blocked on the professional's calendar and reflected in search/booking (no
@@ -145,11 +145,9 @@ The registration/document overhaul for both professions.
   visual feedback, so it feels dead. Fix: success state + show "last
   confirmed" clearly. The weekly email complements rather than replaces it.
 
-**Follow-up questions (Phase 3):**
-- Does the weekly email need one-click confirm (signed link, no login) or is
-  "click through and sign in" acceptable at this stage?
-- Should clients see a professional's calendar (free/busy) before proposing
-  a booking, or keep proposals date-first and let the carer decline?
+**Follow-up questions (Phase 3) — ANSWERED 2026-07-08:**
+- Weekly email: **one-click signed confirm link** (no login; edit requires sign-in).
+- Clients **see busy times** (times only, never who) before proposing.
 
 ## Phase 4 — Admin portal v2
 
@@ -194,7 +192,7 @@ the domain and launch.
 
 ## Sequencing note
 
-Phases 1 and 2 shipped 2026-07-08 (commits 351179f, bfa8564). Phase 0's
+Phases 1, 2 and 3 shipped 2026-07-08 (commits 351179f, bfa8564). Phase 0's
 solicitor work remains with Dustin and is now the launch-critical item. Phase 2 makes
 matching genuinely good. Phases 3-4 are operational quality. Phase 5 waits on
 the domain; Phase 6 (SEO) is parked last but Section A can slot into any gap.

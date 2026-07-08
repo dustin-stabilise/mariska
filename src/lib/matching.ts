@@ -65,6 +65,7 @@ export const LANGUAGES = [
 ];
 
 export const SCHEDULE_OPTIONS = [
+  { value: "visits", label: "Short visits (pop-ins)" },
   { value: "mornings", label: "Mornings" },
   { value: "daytime", label: "Daytime" },
   { value: "evenings", label: "Evenings" },
@@ -139,6 +140,7 @@ const NEED_TO_CATEGORIES: Record<string, string[]> = {
 
 /** Maps schedule wishes to the carer availability options that satisfy them. */
 const SCHEDULE_TO_AVAILABILITY: Record<string, string[]> = {
+  visits: ["visits", "part_time", "day_shifts"],
   mornings: ["day_shifts", "part_time", "full_time"],
   daytime: ["day_shifts", "part_time", "full_time"],
   evenings: ["part_time", "night_shifts", "full_time"],
