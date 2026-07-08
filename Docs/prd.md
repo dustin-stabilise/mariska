@@ -122,7 +122,7 @@ Single admin dashboard covering:
   links.
 - **Bookings oversight:** all bookings with money split (total, platform
   fees, carer net), payment and payout status; platform revenue summary.
-- **Clients:** account list; credit grants remain as a legacy support tool.
+- **Clients:** list with email, care needed and when; per-client detail page with the full care profile, meet-and-greet and booking history, recorded terms acceptances, and an internal staff-notes log (admin-only, author + timestamp). Legacy credits UI removed (Phase 4, 2026-07-08).
 - **Safeguarding:** flag queue (complaints, missed interviews, concerns) with
   resolve/dismiss workflow.
 

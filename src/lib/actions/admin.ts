@@ -560,3 +560,45 @@ export async function inviteStaff(
   revalidatePath(`${ADMIN_ROOT}/staff`);
   return { created: { email, password } };
 }
+
+/* ------------------------------------------------------------------ */
+/* Staff notes (clients)                                               */
+/* ------------------------------------------------------------------ */
+
+export async function addStaffNote(clientId: string, formData: FormData) {
+  const { user } = await requireRole("admin");
+  const note = formValue(formData, "note");
+  if (!note || note.length > 2000) return;
+
+  const db = createAdminClient();
+  const { error } = await db.from("staff_notes").insert({
+    client_id: clientId,
+    author_id: user.id,
+    note,
+  });
+  if (error) throw new Error(`addStaffNote: ${error.message}`);
+  revalidatePath(`${ADMIN_ROOT}/clients/${clientId}`);
+}
+
+export async function deleteStaffNote(noteId: string, _formData?: FormData) {
+  await requireRole("admin");
+  const db = createAdminClient();
+  const { error } = await db.from("staff_notes").delete().eq("id", noteId);
+  if (error) throw new Error(`deleteStaffNote: ${error.message}`);
+  revalidatePath(ADMIN_ROOT, "layout");
+}
+
+/**
+ * Emails live in auth.users; expose them to the admin pages via the
+ * service client. Pre-launch volumes make one page sufficient.
+ */
+export async function listUserEmails(): Promise<Map<string, string>> {
+  await requireRole("admin");
+  const db = createAdminClient();
+  const { data } = await db.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  return new Map(
+    (data?.users ?? [])
+      .filter((u) => u.email)
+      .map((u) => [u.id, u.email as string])
+  );
+}

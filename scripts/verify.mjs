@@ -481,5 +481,27 @@ console.log("\n— phase 3: scheduling & availability —");
   await svc.from("unavailable_dates").delete().eq("professional_id", gid);
 }
 
+// ───────────────────────────────────────────────────────────────────────────
+// Phase 4: staff notes are admin-only
+// ───────────────────────────────────────────────────────────────────────────
+console.log("\n— phase 4: staff notes —");
+{
+  const svc = createClient(URL_, process.env.SUPABASE_SECRET_KEY, { auth: { persistSession: false } });
+  const client = await login("client@example.com");
+  const admin = await login("admin@example.com");
+
+  const { error: adminIns } = await admin.c.from("staff_notes").insert({
+    client_id: client.session.user.id, author_id: admin.session.user.id, note: "verify note",
+  });
+  check("admin adds a staff note", !adminIns, adminIns?.message);
+  const { data: clientSees } = await client.c.from("staff_notes").select("id");
+  check("client cannot see staff notes about them", (clientSees ?? []).length === 0);
+  const { error: forge } = await client.c.from("staff_notes").insert({
+    client_id: client.session.user.id, author_id: client.session.user.id, note: "forged",
+  });
+  check("client cannot write staff notes", Boolean(forge));
+  await svc.from("staff_notes").delete().eq("note", "verify note");
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

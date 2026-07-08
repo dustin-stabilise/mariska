@@ -149,7 +149,7 @@ The registration/document overhaul for both professions.
 - Weekly email: **one-click signed confirm link** (no login; edit requires sign-in).
 - Clients **see busy times** (times only, never who) before proposing.
 
-## Phase 4 — Admin portal v2
+## Phase 4 — Admin portal v2 ✅ SHIPPED 2026-07-08
 
 - **Remove the credits remnants** (the admin clients page still shows credit
   balances and a grant-credits tool — legacy of the retired model).
@@ -160,9 +160,8 @@ The registration/document overhaul for both professions.
   on interview/booking oversight pages.
 - A proper client detail page (mirroring the professional detail page).
 
-**Follow-up questions (Phase 4):**
-- Anything else the agency team needs at a glance per client (notes field for
-  staff? contact log?) while we're in there?
+**Follow-up questions (Phase 4) — ANSWERED 2026-07-08:**
+- Staff notes on clients: **yes** (internal log, author + timestamp, admin-only).
 
 ## Phase 5 — Later: Google Workspace integration
 
@@ -192,7 +191,7 @@ the domain and launch.
 
 ## Sequencing note
 
-Phases 1, 2 and 3 shipped 2026-07-08 (commits 351179f, bfa8564). Phase 0's
+Phases 1-4 shipped 2026-07-08 (commits 351179f, bfa8564). Phase 0's
 solicitor work remains with Dustin and is now the launch-critical item. Phase 2 makes
 matching genuinely good. Phases 3-4 are operational quality. Phase 5 waits on
 the domain; Phase 6 (SEO) is parked last but Section A can slot into any gap.
