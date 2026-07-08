@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { signUpClient } from "@/lib/actions/auth";
-import { AuthForm, Field } from "@/components/auth-form";
+import { AuthForm, Field, TermsCheckbox } from "@/components/auth-form";
 
 export const metadata = { title: "Create your account" };
 
@@ -35,13 +35,7 @@ export default function SignupPage() {
           <Field label="Last name" name="lastName" autoComplete="family-name" />
         </div>
         <Field label="Email" name="email" type="email" autoComplete="email" />
-        <Field
-          label="Phone (optional)"
-          name="phone"
-          type="tel"
-          required={false}
-          autoComplete="tel"
-        />
+        <Field label="Phone" name="phone" type="tel" autoComplete="tel" />
         <Field
           label="Password"
           name="password"
@@ -49,6 +43,7 @@ export default function SignupPage() {
           autoComplete="new-password"
           placeholder="At least 8 characters"
         />
+        <TermsCheckbox audience="client" />
       </AuthForm>
     </div>
   );

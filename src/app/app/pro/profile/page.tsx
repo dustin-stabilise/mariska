@@ -51,6 +51,7 @@ export default async function ProProfilePage() {
           photo_url: pro.photo_url,
           intro_video_url: pro.intro_video_url,
           nmc_pin: pro.nmc_pin,
+          can_drive: pro.can_drive,
         }}
         contact={{
           first_name: profile.first_name,

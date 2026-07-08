@@ -63,6 +63,32 @@ export function SelectField({
   );
 }
 
+export function TermsCheckbox({ audience }: { audience: "client" | "professional" }) {
+  return (
+    <label className="flex items-start gap-3 text-[14px] text-body">
+      <input
+        type="checkbox"
+        name="acceptTerms"
+        required
+        className="mt-0.5 h-4 w-4 accent-[#3F5E54]"
+      />
+      <span>
+        I accept the{" "}
+        <a href="/terms" target="_blank" className="font-semibold text-green underline">
+          terms &amp; conditions
+        </a>{" "}
+        and{" "}
+        <a href="/privacy" target="_blank" className="font-semibold text-green underline">
+          privacy policy
+        </a>
+        {audience === "professional"
+          ? ", and confirm I am applying to work on a self-employed basis."
+          : "."}
+      </span>
+    </label>
+  );
+}
+
 export function AuthForm({
   action,
   submitLabel,

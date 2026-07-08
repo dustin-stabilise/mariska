@@ -28,7 +28,7 @@ export default async function LoginPage({
             </Link>{" "}
             or{" "}
             <Link href="/join" className="font-semibold text-green">
-              join as a carer
+              join as a carer or nurse
             </Link>
           </p>
         }

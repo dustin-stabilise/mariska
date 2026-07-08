@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth-helpers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { PageHeading, Card, EmptyState } from "@/components/ui";
 import { DocReviewForm } from "@/components/admin/doc-review-form";
+import { certificateType } from "@/lib/compliance-requirements";
 import { formatDate, humanise, nameMap } from "@/lib/admin/helpers";
 
 export default async function AdminDocumentsPage() {
@@ -10,7 +11,9 @@ export default async function AdminDocumentsPage() {
 
   const { data: docs } = await supabase
     .from("compliance_documents")
-    .select("id, professional_id, doc_type, title, issue_date, expiry_date, created_at, storage_path")
+    .select(
+      "id, professional_id, doc_type, certificate_type, title, issue_date, expiry_date, created_at, storage_path"
+    )
     .eq("status", "pending_review")
     .order("created_at", { ascending: true });
   const queue = docs ?? [];
@@ -57,6 +60,12 @@ export default async function AdminDocumentsPage() {
                     <span className="ml-2 inline-flex px-2.5 py-0.5 rounded-full text-[12.5px] font-semibold capitalize bg-sand text-muted">
                       {humanise(doc.doc_type)}
                     </span>
+                    {doc.doc_type === "training_certificate" && doc.certificate_type && (
+                      <span className="ml-2 inline-flex px-2.5 py-0.5 rounded-full text-[12.5px] font-semibold bg-sand text-muted">
+                        {certificateType(doc.certificate_type)?.label ??
+                          humanise(doc.certificate_type)}
+                      </span>
+                    )}
                   </div>
                   <div className="text-[14px] text-muted mt-1">
                     <Link

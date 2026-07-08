@@ -165,20 +165,52 @@ async function main() {
       gender: p.gender,
       personality_style: p.personality,
       comfortable_with: p.comfortable,
+      can_drive: true,
+      rtw_route: "british_irish_passport",
+      contract_version: "2026-07-draft-1",
+      contract_accepted_at: new Date().toISOString(),
+      ...(p.kind === "nurse"
+        ? {
+            nmc_verified_at: new Date().toISOString(),
+            clinical_skills: {
+              oral_topical_meds: "expert", injections: "expert", iv_therapy: "competent",
+              controlled_drugs: "competent", syringe_drivers: "competent",
+              peg_ng_feeding: "competent", catheterisation: "expert", bowel_stoma: "competent",
+              wound_care: "expert", pressure_care: "expert", diabetes: "competent",
+              palliative: "expert", vital_signs: "expert",
+            },
+          }
+        : {}),
     });
     if (proErr) throw new Error(`profile ${p.email}: ${proErr.message}`);
 
     // approved documents -> compliance trigger recomputes to green
-    const docs = [
+    const MANDATORY_CERTS = [
+      "care_certificate","moving_handling","safeguarding_adults","basic_life_support",
+      "fire_safety","food_hygiene","infection_prevention","medication","mca_dols",
+      "health_safety","information_governance",
+    ];
+    const ANNUAL = new Set(["moving_handling","basic_life_support","medication","information_governance"]);
+    const docs: { doc_type: string; certificate_type?: string; title: string; expiry: Date | null }[] = [
       { doc_type: "dbs", title: "Enhanced DBS certificate", expiry: inMonths(10) },
-      { doc_type: "right_to_work", title: "Right to work — passport", expiry: null },
-      { doc_type: "training_certificate", title: "Mandatory care training", expiry: inMonths(8) },
-      { doc_type: "reference", title: "Reference — previous client", expiry: null },
-      { doc_type: "reference", title: "Reference — care agency", expiry: null },
+      { doc_type: "photo_id", title: "Passport (British)", expiry: inMonths(60) },
+      { doc_type: "proof_of_address", title: "Council tax bill", expiry: null },
+      { doc_type: "proof_of_address", title: "Utility bill", expiry: null },
+      { doc_type: "reference", title: "Reference - previous client", expiry: null },
+      { doc_type: "reference", title: "Reference - care agency", expiry: null },
+      { doc_type: "cv", title: "CV", expiry: null },
+      { doc_type: "insurance", title: p.kind === "nurse" ? "Professional indemnity insurance" : "Public liability & indemnity insurance", expiry: inMonths(6) },
+      { doc_type: "driving_licence", title: "Driving licence", expiry: inMonths(48) },
+      ...MANDATORY_CERTS.map((cert) => ({
+        doc_type: "training_certificate",
+        certificate_type: cert,
+        title: cert.replace(/_/g, " "),
+        expiry: cert === "care_certificate" ? null : inMonths(ANNUAL.has(cert) ? 9 : 30),
+      })),
       ...(p.kind === "nurse"
         ? [
-            { doc_type: "insurance", title: "Professional indemnity insurance", expiry: inMonths(6) },
-            { doc_type: "nmc_registration", title: "NMC registration", expiry: inMonths(11) },
+            { doc_type: "nmc_registration", title: "NMC registration (revalidation date)", expiry: inMonths(11) },
+            { doc_type: "statement_of_entry", title: "NMC statement of entry", expiry: null },
           ]
         : []),
     ];
@@ -186,6 +218,7 @@ async function main() {
       const { error } = await db.from("compliance_documents").insert({
         professional_id: id,
         doc_type: d.doc_type,
+        certificate_type: d.certificate_type ?? null,
         title: d.title,
         storage_path: `${id}/${d.doc_type}/seed-placeholder.pdf`,
         issue_date: iso(new Date()),

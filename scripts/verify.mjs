@@ -107,7 +107,7 @@ console.log("\n— professional flow (grace.carer@example.com) —");
   const { c, session } = await login("grace.carer@example.com");
 
   const { data: own } = await c.from("professional_profiles").select("id, tier, compliance_status, compliance_score").eq("id", session.user.id).single();
-  check("professional reads own full profile", own?.compliance_status === "green" && own?.compliance_score === 90, JSON.stringify(own));
+  check("professional reads own full profile", own?.compliance_status === "green" && own?.compliance_score === 100, JSON.stringify(own));
 
   const { error: tierErr } = await c.from("professional_profiles").update({ tier: "platinum" }).eq("id", session.user.id);
   check("professional cannot self-promote tier", Boolean(tierErr));
@@ -292,6 +292,58 @@ console.log("\n— matching: care profile + personalised search —");
 
   // clean up so repeated runs stay deterministic
   await svc.from("care_profiles").delete().eq("client_id", client.session.user.id);
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// Vetting v2 (Phase 1): engine, terms acceptances, contract gate
+// ───────────────────────────────────────────────────────────────────────────
+console.log("\n— vetting v2: engine, terms, contracts —");
+{
+  const svc = createClient(URL_, process.env.SUPABASE_SECRET_KEY, { auth: { persistSession: false } });
+
+  // seeded pros satisfy the stricter engine
+  const { data: pros } = await svc.from("professional_profiles").select("kind, compliance_status, compliance_score");
+  check("all seeded pros green under engine v2", (pros ?? []).every((p) => p.compliance_status === "green"));
+  check("carer max 100 / nurse max 110", (pros ?? []).every((p) => p.compliance_score === (p.kind === "nurse" ? 110 : 100)));
+
+  // terms acceptances: own-row insert only
+  const client = await login("client@example.com");
+  const { error: okIns } = await client.c.from("terms_acceptances").insert({
+    user_id: client.session.user.id, document: "client_terms", version: "verify-test",
+  });
+  check("user records own terms acceptance", !okIns, okIns?.message);
+  const grace = await login("grace.carer@example.com");
+  const { error: forgeErr } = await grace.c.from("terms_acceptances").insert({
+    user_id: client.session.user.id, document: "client_terms", version: "forged",
+  });
+  check("cannot record acceptance for another user", Boolean(forgeErr));
+  const { data: leaked } = await grace.c.from("terms_acceptances").select("id").eq("user_id", client.session.user.id);
+  check("cannot read others' acceptances", (leaked ?? []).length === 0);
+  await svc.from("terms_acceptances").delete().eq("version", "verify-test");
+
+  // contract lifecycle on a temp professional
+  const { data: tmp } = await svc.auth.admin.createUser({
+    email: "verify.contract@example.com", password: "password123", email_confirm: true,
+    app_metadata: { role: "professional" }, user_metadata: { first_name: "Verify", last_name: "Contract" },
+  });
+  await svc.from("professional_profiles").insert({ id: tmp.user.id, kind: "carer", location: "Test", years_experience: 3 });
+  const tempPro = createClient(URL_, PUB, { auth: { persistSession: false } });
+  await tempPro.auth.signInWithPassword({ email: "verify.contract@example.com", password: "password123" });
+
+  const { error: noContract } = await tempPro.rpc("accept_contract", { p_ip: "127.0.0.1" });
+  check("accept_contract fails before issue", noContract?.message.includes("no_contract_to_accept"), noContract?.message);
+
+  await svc.from("professional_profiles").update({ contract_version: "verify-1" }).eq("id", tmp.user.id);
+  const { data: accepted, error: accErr } = await tempPro.rpc("accept_contract", { p_ip: "127.0.0.1" });
+  check("accept_contract stamps acceptance", !accErr && accepted?.contract_accepted_at != null, accErr?.message);
+  const { error: twiceErr } = await tempPro.rpc("accept_contract", { p_ip: "127.0.0.1" });
+  check("acceptance cannot be re-stamped", Boolean(twiceErr));
+
+  // fresh professional with no docs is red
+  const { data: fresh } = await svc.from("professional_profiles").select("compliance_status").eq("id", tmp.user.id).single();
+  check("fresh professional is red (no docs)", fresh?.compliance_status === "red");
+
+  await svc.auth.admin.deleteUser(tmp.user.id);
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

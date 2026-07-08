@@ -74,8 +74,10 @@ export const DOC_TYPE_LABELS: Record<DocumentType, string> = {
   qualification: "Qualification",
   training_certificate: "Training certificate",
   reference: "Reference",
-  insurance: "Indemnity insurance",
+  insurance: "Liability & indemnity insurance",
   nmc_registration: "NMC registration",
+  statement_of_entry: "NMC statement of entry",
+  driving_licence: "Driving licence",
   other: "Other",
 };
 
@@ -90,57 +92,5 @@ export const REFERRAL_KINDS: {
   { value: "nurse", label: "Nurse" },
 ];
 
-/** The documents a professional must have approved to go compliant. */
-export type RequiredDoc = {
-  docType: DocumentType;
-  label: string;
-  count: number;
-  blurb: string;
-};
-
-const CARER_REQUIRED_DOCS: RequiredDoc[] = [
-  {
-    docType: "dbs",
-    label: "Enhanced DBS check",
-    count: 1,
-    blurb: "A current enhanced DBS certificate (ideally on the update service).",
-  },
-  {
-    docType: "right_to_work",
-    label: "Right to work",
-    count: 1,
-    blurb: "Passport, visa or share code proving your right to work in the UK.",
-  },
-  {
-    docType: "reference",
-    label: "Two references",
-    count: 2,
-    blurb: "Two professional references, at least one from a recent care role.",
-  },
-  {
-    docType: "training_certificate",
-    label: "Training certificate",
-    count: 1,
-    blurb: "Up-to-date care training, e.g. moving & handling or the Care Certificate.",
-  },
-];
-
-const NURSE_REQUIRED_DOCS: RequiredDoc[] = [
-  ...CARER_REQUIRED_DOCS,
-  {
-    docType: "nmc_registration",
-    label: "NMC registration",
-    count: 1,
-    blurb: "Evidence of your current NMC registration matching your PIN.",
-  },
-  {
-    docType: "insurance",
-    label: "Indemnity insurance",
-    count: 1,
-    blurb: "Professional indemnity insurance covering independent nursing work.",
-  },
-];
-
-export function requiredDocsFor(kind: ProfessionalKind): RequiredDoc[] {
-  return kind === "nurse" ? NURSE_REQUIRED_DOCS : CARER_REQUIRED_DOCS;
-}
+// The v1 required-docs list used to live here; the v2 requirement checklist
+// is built in src/lib/vetting-checklist.ts from src/lib/compliance-requirements.ts.

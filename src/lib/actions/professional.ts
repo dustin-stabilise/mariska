@@ -1,7 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import {
+  CLINICAL_SKILLS,
+  CLINICAL_SKILL_LEVELS,
+  certificateExpiry,
+  certificateType,
+} from "@/lib/compliance-requirements";
 import {
   AVAILABILITY_OPTIONS,
   AVAILABILITY_STATUSES,
@@ -145,6 +152,7 @@ export async function saveProfessionalProfile(
       comfortable_with: comfortableWith,
       photo_url: str(formData, "photo_url") || null,
       intro_video_url: str(formData, "intro_video_url") || null,
+      can_drive: formData.has("can_drive"),
       ...(pro.kind === "nurse" ? { nmc_pin: nmcPin || null } : {}),
     })
     .eq("id", user.id);
@@ -172,12 +180,16 @@ export async function saveProfessionalProfile(
 /* Compliance documents                                                */
 /* ------------------------------------------------------------------ */
 
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
 export async function addDocumentRecord(input: {
   docType: string;
   title: string;
   storagePath: string;
   issueDate?: string;
   expiryDate?: string;
+  certificateType?: string;
+  completionDate?: string;
 }): Promise<ProActionState> {
   const { supabase, user } = await requireProfessional();
 
@@ -191,13 +203,37 @@ export async function addDocumentRecord(input: {
   const title = input.title.trim();
   if (!title) return { error: "Please give the document a title." };
 
+  let issueDate = input.issueDate || null;
+  let expiryDate = input.expiryDate || null;
+  let certType: string | null = null;
+
+  if (input.docType === "training_certificate") {
+    // Certificate subtype must come from the shared vocabulary, and the
+    // expiry is recomputed here - the client's preview is never trusted.
+    const cert = certificateType(input.certificateType ?? "");
+    if (!cert) {
+      return { error: "Please choose which training certificate this is." };
+    }
+    const completion = (input.completionDate ?? "").trim();
+    if (!ISO_DATE.test(completion) || Number.isNaN(new Date(completion).getTime())) {
+      return { error: "Please enter the date you completed the training." };
+    }
+    if (new Date(completion).getTime() > Date.now()) {
+      return { error: "The completion date can't be in the future." };
+    }
+    certType = cert.value;
+    issueDate = completion;
+    expiryDate = certificateExpiry(cert.value, completion);
+  }
+
   const { error } = await supabase.from("compliance_documents").insert({
     professional_id: user.id,
     doc_type: input.docType as DocumentType,
     title,
     storage_path: input.storagePath,
-    issue_date: input.issueDate || null,
-    expiry_date: input.expiryDate || null,
+    issue_date: issueDate,
+    expiry_date: expiryDate,
+    certificate_type: certType,
   });
   if (error) return { error: error.message };
 
@@ -235,6 +271,121 @@ export async function deleteDocument(formData: FormData): Promise<void> {
 
   revalidatePath("/app/pro");
   revalidatePath("/app/pro/documents");
+}
+
+/* ------------------------------------------------------------------ */
+/* Right to work                                                       */
+/* ------------------------------------------------------------------ */
+
+export async function saveRtwDetails(
+  _prev: ProActionState,
+  formData: FormData
+): Promise<ProActionState> {
+  const { supabase, user } = await requireProfessional();
+
+  const route = str(formData, "rtw_route");
+  if (route !== "british_irish_passport" && route !== "share_code") {
+    return { error: "Please choose how you'll prove your right to work." };
+  }
+
+  let shareCode: string | null = null;
+  if (route === "share_code") {
+    const normalised = str(formData, "rtw_share_code")
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "");
+    if (normalised.length !== 9) {
+      return {
+        error: "Share codes are 9 characters, in the format ABC-DEF-GHI.",
+      };
+    }
+    shareCode = `${normalised.slice(0, 3)}-${normalised.slice(3, 6)}-${normalised.slice(6, 9)}`;
+  }
+
+  const { error } = await supabase
+    .from("professional_profiles")
+    .update({ rtw_route: route, rtw_share_code: shareCode })
+    .eq("id", user.id);
+  if (error) return { error: error.message };
+
+  revalidatePath("/app/pro");
+  revalidatePath("/app/pro/documents");
+  return {
+    success:
+      route === "share_code"
+        ? "Share code saved. Our team will verify it with the Home Office."
+        : "Route saved. Once your passport is approved, your right to work is covered.",
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* Clinical skills (nurses)                                            */
+/* ------------------------------------------------------------------ */
+
+export async function saveClinicalSkills(
+  _prev: ProActionState,
+  formData: FormData
+): Promise<ProActionState> {
+  const { supabase, user } = await requireProfessional();
+
+  const { data: pro } = await supabase
+    .from("professional_profiles")
+    .select("kind")
+    .eq("id", user.id)
+    .single();
+  if (!pro || pro.kind !== "nurse") {
+    return { error: "The clinical skills checklist applies to nurses only." };
+  }
+
+  // Only vocabulary keys and levels are persisted; anything else is dropped.
+  const levels = new Set<string>(CLINICAL_SKILL_LEVELS);
+  const skills: Record<string, string> = {};
+  for (const skill of CLINICAL_SKILLS) {
+    const raw = str(formData, `skill_${skill.value}`);
+    if (levels.has(raw)) skills[skill.value] = raw;
+  }
+
+  const { error } = await supabase
+    .from("professional_profiles")
+    .update({ clinical_skills: skills })
+    .eq("id", user.id);
+  if (error) return { error: error.message };
+
+  revalidatePath("/app/pro");
+  revalidatePath("/app/pro/skills");
+  return {
+    success: `Saved. ${Object.keys(skills).length} of ${CLINICAL_SKILLS.length} skills rated.`,
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* Working agreement                                                   */
+/* ------------------------------------------------------------------ */
+
+export async function acceptContract(
+  // Required by the useActionState signature; nothing is read from the form.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _prev: ProActionState,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _formData: FormData
+): Promise<ProActionState> {
+  const { supabase } = await requireProfessional();
+
+  const h = await headers();
+  const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || null;
+
+  const { error } = await supabase.rpc("accept_contract", {
+    p_ip: ip ?? undefined,
+  });
+  if (error) {
+    if (error.message.includes("no_contract_to_accept")) {
+      return { error: "There's no agreement waiting for your acceptance." };
+    }
+    return { error: error.message };
+  }
+
+  revalidatePath("/app/pro");
+  revalidatePath("/app/pro/contract");
+  return { success: "Agreement accepted." };
 }
 
 /* ------------------------------------------------------------------ */

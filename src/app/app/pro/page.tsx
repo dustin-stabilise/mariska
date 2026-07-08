@@ -4,10 +4,17 @@ import { confirmAvailability } from "@/lib/actions/marketplace";
 import { connectPayouts } from "@/lib/actions/bookings";
 import { COMMISSION, formatGBP } from "@/lib/pricing";
 import {
-  requiredDocsFor,
   DOC_TYPE_LABELS,
   type DocumentType,
 } from "@/lib/professional-constants";
+import { CLINICAL_SKILLS } from "@/lib/compliance-requirements";
+import {
+  buildVettingChecklist,
+  summariseTraining,
+  ratedSkillCount,
+  MIN_RATED_SKILLS,
+} from "@/lib/vetting-checklist";
+import { ChecklistRow } from "@/components/pro/checklist";
 import { PageHeading, Card, Stat, CompliancePill, TierBadge, Button } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
@@ -74,7 +81,7 @@ export default async function ProDashboard({
         .single(),
       supabase
         .from("compliance_documents")
-        .select("id, doc_type, title, status, expiry_date")
+        .select("id, doc_type, certificate_type, title, status, expiry_date, review_notes")
         .eq("professional_id", user.id),
       supabase
         .from("interview_requests")
@@ -121,26 +128,17 @@ export default async function ProDashboard({
     .filter((p) => p.status === "pending")
     .reduce((sum, p) => sum + p.amount, 0);
 
-  // ----- compliance checklist -------------------------------------------
-  const checklist = requiredDocsFor(pro.kind).map((req) => {
-    const ofType = documents.filter((d) => d.doc_type === req.docType);
-    const approved = ofType.filter((d) => d.status === "approved").length;
-    const pending = ofType.filter((d) => d.status === "pending_review").length;
-    const rejected = ofType.filter((d) => d.status === "rejected").length;
-    const state =
-      approved >= req.count
-        ? "complete"
-        : pending > 0
-          ? "in_review"
-          : rejected > 0
-            ? "rejected"
-            : "missing";
-    return { ...req, approved, state };
-  });
-  const interviewDone = Boolean(pro.interview_passed_at);
-  const outstanding =
-    checklist.filter((c) => c.state !== "complete").length +
-    (interviewDone ? 0 : 1);
+  // ----- compliance checklist (v2, mirrors the SQL engine) ----------------
+  const checklistGroups = buildVettingChecklist(pro, documents);
+  // Compact dashboard view: the per-certificate items collapse to one line.
+  const checklistItems = checklistGroups.flatMap((group) =>
+    group.key === "training" ? [summariseTraining(group)] : group.items
+  );
+  const outstanding = checklistGroups
+    .flatMap((group) => group.items)
+    .filter((item) => item.state !== "approved" && item.state !== "expiring")
+    .length;
+  const ratedSkills = ratedSkillCount(pro.clinical_skills);
 
   // ----- expiring documents & availability staleness ----------------------
   const { expiring, availabilityStale } = deriveTimeSensitive(
@@ -195,6 +193,25 @@ export default async function ProDashboard({
         </Card>
       )}
 
+      {/* Working agreement awaiting acceptance */}
+      {pro.contract_version && !pro.contract_accepted_at && (
+        <Card className="mb-6 border-green bg-green/5">
+          <h2 className="font-serif text-lg text-ink">
+            Your working agreement is ready
+          </h2>
+          <p className="text-[15px] text-body mt-1">
+            Our team has issued version {pro.contract_version} of your working
+            agreement. Please read and accept it to complete your onboarding.
+          </p>
+          <Link
+            href="/app/pro/contract"
+            className="inline-block mt-3 text-[15px] font-semibold text-green hover:text-green-dark"
+          >
+            Review and accept →
+          </Link>
+        </Card>
+      )}
+
       {/* Application status banner */}
       {(pro.status === "applied" || pro.status === "in_review") && (
         <Card className="mb-6 bg-sage-light border-sage">
@@ -241,7 +258,7 @@ export default async function ProDashboard({
         <Stat
           label="Profile status"
           value={<span className="capitalize">{pro.status.replace(/_/g, " ")}</span>}
-          hint={`Compliance score ${pro.compliance_score}/${pro.kind === "nurse" ? 100 : 90}`}
+          hint={`Compliance score ${pro.compliance_score}/${pro.kind === "nurse" ? 110 : 100}`}
         />
         <Stat
           label="Interview requests"
@@ -277,63 +294,9 @@ export default async function ProDashboard({
             </span>
           </div>
           <ul className="mt-4 divide-y divide-hairline">
-            {checklist.map((item) => (
-              <li key={item.docType} className="py-3 flex items-start gap-3">
-                <span
-                  className={`mt-1 w-2.5 h-2.5 rounded-full flex-none ${
-                    item.state === "complete"
-                      ? "bg-green"
-                      : item.state === "in_review"
-                        ? "bg-tan"
-                        : "bg-red-400"
-                  }`}
-                />
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <span className="text-[15px] font-medium text-ink">
-                      {item.label}
-                      {item.count > 1 && (
-                        <span className="text-muted font-normal">
-                          {" "}
-                          ({item.approved} of {item.count} approved)
-                        </span>
-                      )}
-                    </span>
-                    <span className="text-[13px] text-muted capitalize">
-                      {item.state === "complete"
-                        ? "Approved"
-                        : item.state === "in_review"
-                          ? "In review"
-                          : item.state === "rejected"
-                            ? "Rejected: re-upload needed"
-                            : "Not uploaded"}
-                    </span>
-                  </div>
-                  <p className="text-[13px] text-muted mt-0.5">{item.blurb}</p>
-                </div>
-              </li>
+            {checklistItems.map((item) => (
+              <ChecklistRow key={item.key} item={item} />
             ))}
-            <li className="py-3 flex items-start gap-3">
-              <span
-                className={`mt-1 w-2.5 h-2.5 rounded-full flex-none ${interviewDone ? "bg-green" : "bg-tan"}`}
-              />
-              <div className="flex-1">
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <span className="text-[15px] font-medium text-ink">
-                    Vetting interview
-                  </span>
-                  <span className="text-[13px] text-muted">
-                    {interviewDone
-                      ? `Passed ${formatDate(pro.interview_passed_at)}`
-                      : "Arranged by our team"}
-                  </span>
-                </div>
-                <p className="text-[13px] text-muted mt-0.5">
-                  A short video call with our team. We&apos;ll be in touch to
-                  schedule it once your documents are in.
-                </p>
-              </div>
-            </li>
           </ul>
           <Link
             href="/app/pro/documents"
@@ -420,6 +383,27 @@ export default async function ProDashboard({
               .
             </p>
           </Card>
+
+          {/* Clinical skills (nurses) */}
+          {pro.kind === "nurse" && (
+            <Card className={ratedSkills >= MIN_RATED_SKILLS ? "" : "border-tan"}>
+              <h2 className="font-serif text-xl text-ink">Clinical skills</h2>
+              <p className="text-[14px] text-muted mt-2">
+                You&apos;ve rated{" "}
+                <span className="font-medium text-body">
+                  {ratedSkills} of {CLINICAL_SKILLS.length}
+                </span>{" "}
+                skills. At least {MIN_RATED_SKILLS} are needed for a compliant
+                profile.
+              </p>
+              <Link
+                href="/app/pro/skills"
+                className="inline-block mt-4 text-[15px] font-semibold text-green hover:text-green-dark"
+              >
+                Update your skills →
+              </Link>
+            </Card>
+          )}
 
           {/* Expiring documents */}
           <Card>

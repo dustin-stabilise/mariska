@@ -7,7 +7,7 @@ import { brand } from "@/lib/brand";
 const navLinks = [
   { href: "/how-it-works", label: "How it works" },
   { href: "/#services", label: "Our care" },
-  { href: "/for-carers", label: "For carers" },
+  { href: "/for-carers", label: "For carers & nurses" },
   { href: "/#trust", label: `Why ${brand.name}` },
 ];
 

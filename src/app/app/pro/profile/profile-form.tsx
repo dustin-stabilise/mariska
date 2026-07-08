@@ -87,6 +87,7 @@ export function ProfileForm({
     photo_url: string | null;
     intro_video_url: string | null;
     nmc_pin: string | null;
+    can_drive: boolean;
   };
   contact: {
     first_name: string;
@@ -386,6 +387,20 @@ export function ProfileForm({
               </label>
             ))}
           </div>
+        </Field>
+        <Field
+          label="Driving"
+          hint="Handy for appointments, errands and days out; some families search for a driver."
+        >
+          <label className="flex items-center gap-2.5 rounded-xl border border-hairline px-3.5 py-2.5 text-[14.5px] text-body cursor-pointer hover:border-green has-checked:border-green has-checked:bg-green/5 sm:max-w-xs">
+            <input
+              type="checkbox"
+              name="can_drive"
+              defaultChecked={pro.can_drive}
+              className="accent-green w-4 h-4"
+            />
+            I can drive
+          </label>
         </Field>
       </Section>
 

@@ -405,7 +405,7 @@ export default function HomePage() {
               href="/join"
               className="inline-block rounded-[30px] bg-green px-6 py-[13px] text-[15px] font-semibold text-cream transition-colors hover:bg-green-dark"
             >
-              Join as a carer →
+              Join as a carer or nurse →
             </Link>
           </div>
         </div>

@@ -85,15 +85,14 @@ The registration/document overhaul for both professions.
   accepted → profile goes live** (new contract state between vetting and
   active).
 
-**Follow-up questions (Phase 1):**
-- Training refresh policy: strict 1-year for everything (simpler, above the
-  bar, but real carer friction and re-upload churn) or per-certificate
-  periods from the Skills for Care guidance (recommended)?
-- Minimum experience: 2 years for carers — any minimum for nurses beyond
-  active NMC registration (e.g. 1 year post-registration)?
-- Share codes expire after 90 days and eVisa statuses can be time-limited:
-  do we re-check RTW on a cycle (e.g. every 6 months, matching the existing
-  compliance reviews)?
+**Follow-up questions (Phase 1) — ANSWERED 2026-07-08:**
+- Training refresh: **per-certificate periods** (BLS/medication/IG annually,
+  most others 3-yearly, per Skills for Care norms).
+- Insurance (from Phase 0, affects Phase 1 docs): **carers hold their own**
+  PL + indemnity; evidence becomes a required carer vetting document.
+- Contract signature: **recorded acceptance** (version + timestamp + IP).
+- RTW re-check: **on status expiry + the 6-month compliance sweep**.
+- Still open: any nurse minimum experience beyond active NMC registration.
 
 ## Phase 2 — Profiles & matching v2
 

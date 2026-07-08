@@ -76,14 +76,28 @@ unlock fees" is a marketing commitment.
 
 ## 5. The professional journey (carer / nurse)
 
-1. **Apply** at /join: name, carer-or-nurse, location, years of experience.
+1. **Apply** at /join: name, carer-or-nurse, gender, location, years of
+   experience (carers need at least 2), mandatory phone, and recorded
+   acceptance of the professional terms (version + timestamp + IP).
 2. **Upload compliance documents** to a private vault: enhanced DBS,
-   right-to-work, photo ID, two references, mandatory training certificates.
-   Nurses additionally: NMC registration and professional indemnity
-   insurance. Each document carries issue/expiry dates.
+   passport, two proofs of address, two references, CV, own public liability
+   & indemnity insurance, and every mandatory training certificate
+   individually (Care Certificate, moving & handling, safeguarding, basic
+   life support, fire safety, food hygiene, infection prevention, medication,
+   MCA/DoLS, health & safety, information governance) with completion dates;
+   validity is per certificate (BLS/medication/moving-handling/IG annual,
+   most others 3-yearly). Right to work is route-based: British/Irish
+   passport suffices alone; everyone else provides a Home Office share code
+   which the team verifies online (re-checked on expiry + the 6-month sweep).
+   Optional: driving licence (feeds the can-drive matching flag).
+   Nurses additionally: NMC PIN + statement of entry with revalidation date
+   (the team verifies live register status), and a 17-item clinical skills
+   self-assessment (at least 10 rated).
 3. **Vetting:** the team reviews each document (approve/reject with notes)
-   and conducts an interview. Only when everything passes does the profile go
-   live. (Sector benchmark: leading platforms accept as few as 1 in 7.)
+   and conducts an interview. After approval the platform issues the
+   **working agreement**; the professional's recorded acceptance (version,
+   timestamp, IP) is required before the profile can go live. (Sector
+   benchmark: leading platforms accept as few as 1 in 7.)
 4. **Build the profile:** headline, bio, care categories, availability
    pattern, hourly rate (in pounds; they keep 85%), languages, interests,
    photo/video.
@@ -118,10 +132,14 @@ Staff accounts cannot be self-registered; they are provisioned deliberately
 ## 7. Trust & safety engine (automated compliance)
 
 - Private document vault per professional with issue/expiry dates.
-- Automatic compliance scoring on every document change: DBS 20pts,
-  right-to-work 20, references (2+) 10, training 20, interview 10,
-  availability freshness 10; nurses add insurance 5 + NMC 5. Any required
-  item missing/expired → red; anything expiring within 60 days → amber.
+- Automatic compliance scoring on every document change (engine v2,
+  2026-07-08): DBS 15, right-to-work 10 (route-based), passport 5, proof of
+  address ×2 5, references ×2 10, CV 5, insurance 10 (required for carers
+  too), the full mandatory training set 20 (each certificate tracked with its
+  own validity period), interview 10, availability freshness 10; nurses add
+  NMC (docs + live-register verification) 5 and the clinical skills checklist
+  5. Carer max 100, nurse max 110. Any required item missing/expired → red;
+  anything expiring within 60 days → amber.
 - **Red = invisible:** non-compliant profiles are excluded from search
   automatically, no human action needed.
 - Daily automated job: expiry reminders at 60/30/7 days and on expiry

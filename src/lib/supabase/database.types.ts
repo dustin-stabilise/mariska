@@ -205,6 +205,7 @@ export type Database = {
       }
       compliance_documents: {
         Row: {
+          certificate_type: string | null
           created_at: string
           doc_type: Database["public"]["Enums"]["document_type"]
           expiry_date: string | null
@@ -220,6 +221,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          certificate_type?: string | null
           created_at?: string
           doc_type: Database["public"]["Enums"]["document_type"]
           expiry_date?: string | null
@@ -235,6 +237,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          certificate_type?: string | null
           created_at?: string
           doc_type?: Database["public"]["Enums"]["document_type"]
           expiry_date?: string | null
@@ -584,10 +587,15 @@ export type Database = {
           availability_options: Database["public"]["Enums"]["availability_option"][]
           availability_status: Database["public"]["Enums"]["availability_status"]
           bio: string
+          can_drive: boolean
           care_categories: Database["public"]["Enums"]["care_category"][]
+          clinical_skills: Json
           comfortable_with: string[]
           compliance_score: number
           compliance_status: Database["public"]["Enums"]["compliance_status"]
+          contract_accepted_at: string | null
+          contract_accepted_ip: string | null
+          contract_version: string | null
           created_at: string
           gender: string | null
           headline: string
@@ -601,10 +609,15 @@ export type Database = {
           languages: string[]
           location: string
           nmc_pin: string | null
+          nmc_verified_at: string | null
           payouts_enabled: boolean
           personality_style: string | null
           photo_url: string | null
           region: string
+          rtw_checked_at: string | null
+          rtw_expires_at: string | null
+          rtw_route: string | null
+          rtw_share_code: string | null
           status: Database["public"]["Enums"]["professional_status"]
           stripe_account_id: string | null
           tier: Database["public"]["Enums"]["professional_tier"]
@@ -616,10 +629,15 @@ export type Database = {
           availability_options?: Database["public"]["Enums"]["availability_option"][]
           availability_status?: Database["public"]["Enums"]["availability_status"]
           bio?: string
+          can_drive?: boolean
           care_categories?: Database["public"]["Enums"]["care_category"][]
+          clinical_skills?: Json
           comfortable_with?: string[]
           compliance_score?: number
           compliance_status?: Database["public"]["Enums"]["compliance_status"]
+          contract_accepted_at?: string | null
+          contract_accepted_ip?: string | null
+          contract_version?: string | null
           created_at?: string
           gender?: string | null
           headline?: string
@@ -633,10 +651,15 @@ export type Database = {
           languages?: string[]
           location?: string
           nmc_pin?: string | null
+          nmc_verified_at?: string | null
           payouts_enabled?: boolean
           personality_style?: string | null
           photo_url?: string | null
           region?: string
+          rtw_checked_at?: string | null
+          rtw_expires_at?: string | null
+          rtw_route?: string | null
+          rtw_share_code?: string | null
           status?: Database["public"]["Enums"]["professional_status"]
           stripe_account_id?: string | null
           tier?: Database["public"]["Enums"]["professional_tier"]
@@ -648,10 +671,15 @@ export type Database = {
           availability_options?: Database["public"]["Enums"]["availability_option"][]
           availability_status?: Database["public"]["Enums"]["availability_status"]
           bio?: string
+          can_drive?: boolean
           care_categories?: Database["public"]["Enums"]["care_category"][]
+          clinical_skills?: Json
           comfortable_with?: string[]
           compliance_score?: number
           compliance_status?: Database["public"]["Enums"]["compliance_status"]
+          contract_accepted_at?: string | null
+          contract_accepted_ip?: string | null
+          contract_version?: string | null
           created_at?: string
           gender?: string | null
           headline?: string
@@ -665,10 +693,15 @@ export type Database = {
           languages?: string[]
           location?: string
           nmc_pin?: string | null
+          nmc_verified_at?: string | null
           payouts_enabled?: boolean
           personality_style?: string | null
           photo_url?: string | null
           region?: string
+          rtw_checked_at?: string | null
+          rtw_expires_at?: string | null
+          rtw_route?: string | null
+          rtw_share_code?: string | null
           status?: Database["public"]["Enums"]["professional_status"]
           stripe_account_id?: string | null
           tier?: Database["public"]["Enums"]["professional_tier"]
@@ -968,6 +1001,41 @@ export type Database = {
           },
         ]
       }
+      terms_acceptances: {
+        Row: {
+          accepted_at: string
+          document: string
+          id: string
+          ip: string | null
+          user_id: string
+          version: string
+        }
+        Insert: {
+          accepted_at?: string
+          document: string
+          id?: string
+          ip?: string | null
+          user_id: string
+          version: string
+        }
+        Update: {
+          accepted_at?: string
+          document?: string
+          id?: string
+          ip?: string | null
+          user_id?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "terms_acceptances_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       professional_cards: {
@@ -1036,6 +1104,57 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "bookings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      accept_contract: {
+        Args: { p_ip?: string }
+        Returns: {
+          availability_confirmed_at: string
+          availability_options: Database["public"]["Enums"]["availability_option"][]
+          availability_status: Database["public"]["Enums"]["availability_status"]
+          bio: string
+          can_drive: boolean
+          care_categories: Database["public"]["Enums"]["care_category"][]
+          clinical_skills: Json
+          comfortable_with: string[]
+          compliance_score: number
+          compliance_status: Database["public"]["Enums"]["compliance_status"]
+          contract_accepted_at: string | null
+          contract_accepted_ip: string | null
+          contract_version: string | null
+          created_at: string
+          gender: string | null
+          headline: string
+          hourly_rate_max: number | null
+          hourly_rate_min: number | null
+          id: string
+          interests: string[]
+          interview_passed_at: string | null
+          intro_video_url: string | null
+          kind: Database["public"]["Enums"]["professional_kind"]
+          languages: string[]
+          location: string
+          nmc_pin: string | null
+          nmc_verified_at: string | null
+          payouts_enabled: boolean
+          personality_style: string | null
+          photo_url: string | null
+          region: string
+          rtw_checked_at: string | null
+          rtw_expires_at: string | null
+          rtw_route: string | null
+          rtw_share_code: string | null
+          status: Database["public"]["Enums"]["professional_status"]
+          stripe_account_id: string | null
+          tier: Database["public"]["Enums"]["professional_tier"]
+          updated_at: string
+          years_experience: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "professional_profiles"
           isOneToOne: true
           isSetofReturn: false
         }
@@ -1151,6 +1270,8 @@ export type Database = {
         | "insurance"
         | "nmc_registration"
         | "other"
+        | "driving_licence"
+        | "statement_of_entry"
       flag_reason:
         | "complaint"
         | "missed_interview"
@@ -1373,6 +1494,8 @@ export const Constants = {
         "insurance",
         "nmc_registration",
         "other",
+        "driving_licence",
+        "statement_of_entry",
       ],
       flag_reason: [
         "complaint",

@@ -6,6 +6,7 @@ import { requireRole } from "@/lib/auth-helpers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { recordPayment } from "@/lib/payments/fulfil";
 import { PRICING } from "@/lib/pricing";
+import { CONTRACT_VERSION } from "@/lib/compliance-requirements";
 import { Constants, type Database } from "@/lib/supabase/database.types";
 
 /**
@@ -78,6 +79,23 @@ export async function setProfessionalStatus(
   }
 
   const db = createAdminClient();
+
+  // A professional cannot go live before they have accepted the working
+  // agreement (vetting v2 gate).
+  if (value === "active") {
+    const { data: pro, error: fetchError } = await db
+      .from("professional_profiles")
+      .select("contract_accepted_at")
+      .eq("id", professionalId)
+      .single();
+    if (fetchError || !pro) throw new Error("setProfessionalStatus: professional not found");
+    if (!pro.contract_accepted_at) {
+      throw new Error(
+        "setProfessionalStatus: cannot activate before the working agreement is accepted"
+      );
+    }
+  }
+
   const { error } = await db
     .from("professional_profiles")
     .update({ status: value })
@@ -116,6 +134,79 @@ export async function setTier(professionalId: string, tier: ProfessionalTier | F
     .update({ tier: value })
     .eq("id", professionalId);
   if (error) throw new Error(`setTier: ${error.message}`);
+  revalidatePath(ADMIN_ROOT, "layout");
+}
+
+/**
+ * Record that an admin ran the gov.uk online right-to-work check for a
+ * share-code professional. Check date is always "now"; the optional expiry
+ * comes from the gov.uk result for time-limited statuses.
+ */
+export async function recordRtwCheck(professionalId: string, formData: FormData) {
+  await requireRole("admin");
+  const expires = formValue(formData, "expiresAt");
+  if (expires && Number.isNaN(new Date(expires).getTime())) {
+    throw new Error("recordRtwCheck: invalid expiry date");
+  }
+
+  const db = createAdminClient();
+  const { error } = await db
+    .from("professional_profiles")
+    .update({
+      rtw_checked_at: new Date().toISOString(),
+      rtw_expires_at: expires ?? null,
+    })
+    .eq("id", professionalId);
+  if (error) throw new Error(`recordRtwCheck: ${error.message}`);
+
+  const { error: rpcError } = await db.rpc("compute_compliance", {
+    p_professional_id: professionalId,
+  });
+  if (rpcError) throw new Error(`recordRtwCheck: ${rpcError.message}`);
+  revalidatePath(ADMIN_ROOT, "layout");
+}
+
+/** Record that an admin checked the professional's PIN on the NMC register. */
+export async function verifyNmc(professionalId: string, _formData?: FormData) {
+  await requireRole("admin");
+  const db = createAdminClient();
+  const { error } = await db
+    .from("professional_profiles")
+    .update({ nmc_verified_at: new Date().toISOString() })
+    .eq("id", professionalId);
+  if (error) throw new Error(`verifyNmc: ${error.message}`);
+
+  const { error: rpcError } = await db.rpc("compute_compliance", {
+    p_professional_id: professionalId,
+  });
+  if (rpcError) throw new Error(`verifyNmc: ${rpcError.message}`);
+  revalidatePath(ADMIN_ROOT, "layout");
+}
+
+/**
+ * Issue the current working agreement to a professional. Acceptance happens
+ * in the professional area; issuing again re-sends the current version but
+ * never touches an existing acceptance.
+ */
+export async function issueContract(professionalId: string, _formData?: FormData) {
+  await requireRole("admin");
+  const db = createAdminClient();
+
+  const { data: pro, error: fetchError } = await db
+    .from("professional_profiles")
+    .select("contract_accepted_at")
+    .eq("id", professionalId)
+    .single();
+  if (fetchError || !pro) throw new Error("issueContract: professional not found");
+  if (pro.contract_accepted_at) {
+    throw new Error("issueContract: the working agreement has already been accepted");
+  }
+
+  const { error } = await db
+    .from("professional_profiles")
+    .update({ contract_version: CONTRACT_VERSION })
+    .eq("id", professionalId);
+  if (error) throw new Error(`issueContract: ${error.message}`);
   revalidatePath(ADMIN_ROOT, "layout");
 }
 

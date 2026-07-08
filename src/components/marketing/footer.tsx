@@ -11,7 +11,7 @@ const careLinks = [
 
 const companyLinks = [
   { href: "/how-it-works", label: "How it works" },
-  { href: "/for-carers", label: "For carers" },
+  { href: "/for-carers", label: "For carers & nurses" },
   { href: "/#trust", label: `Why ${brand.name}` },
   { href: "/#contact", label: "Contact" },
 ];
@@ -94,13 +94,13 @@ export function Footer() {
             reserved.
           </span>
           <div className="flex gap-5">
-            <Link href="/" className="transition-colors hover:text-green">
+            <Link href="/privacy" className="transition-colors hover:text-green">
               Privacy
             </Link>
-            <Link href="/" className="transition-colors hover:text-green">
+            <Link href="/terms" className="transition-colors hover:text-green">
               Terms
             </Link>
-            <Link href="/" className="transition-colors hover:text-green">
+            <Link href="/safeguarding" className="transition-colors hover:text-green">
               Safeguarding
             </Link>
           </div>
