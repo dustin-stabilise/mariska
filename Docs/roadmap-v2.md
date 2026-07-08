@@ -46,7 +46,7 @@ Mostly external (solicitor) work; product work is small but launch-blocking.
   Stripe's own onboarding (we never store bank details — safer and less
   regulated). OK to keep it that way rather than a bank-details form?
 
-## Phase 1 — Vetting & onboarding hardening
+## Phase 1 — Vetting & onboarding hardening ✅ SHIPPED 2026-07-08
 
 The registration/document overhaul for both professions.
 
@@ -94,7 +94,7 @@ The registration/document overhaul for both professions.
 - RTW re-check: **on status expiry + the 6-month compliance sweep**.
 - Still open: any nurse minimum experience beyond active NMC registration.
 
-## Phase 2 — Profiles & matching v2
+## Phase 2 — Profiles & matching v2 ✅ SHIPPED 2026-07-08
 
 - **Photos:** exactly 3 uploaded photos per professional (real uploads to
   storage, replacing the photo URL field). Needs a new public-read bucket +
@@ -121,12 +121,10 @@ The registration/document overhaul for both professions.
   carer at meet-and-greet/booking time (currently client_notes only travel on
   bookings).
 
-**Follow-up questions (Phase 2):**
-- Photo moderation: photos go live immediately, or only after admin approval?
-- Proximity: what's the default search radius (10 miles? 25?) and should
-  clients be able to widen it?
-- Languages list: start from the ~20 most spoken languages in the UK and
-  grow on request?
+**Follow-up questions (Phase 2) — ANSWERED 2026-07-08:**
+- Photo moderation: **admin approval before display**.
+- Proximity: **default 15 miles, client-adjustable 5-50, live-in exempt**.
+- Languages: **the ~20-language UK list + an "Other" free entry**.
 
 ## Phase 3 — Scheduling & availability
 
@@ -196,7 +194,8 @@ the domain and launch.
 
 ## Sequencing note
 
-Phases 0 and 1 are the launch-critical pair (legal + vetting). Phase 2 makes
+Phases 1 and 2 shipped 2026-07-08 (commits 351179f, bfa8564). Phase 0's
+solicitor work remains with Dustin and is now the launch-critical item. Phase 2 makes
 matching genuinely good. Phases 3-4 are operational quality. Phase 5 waits on
 the domain; Phase 6 (SEO) is parked last but Section A can slot into any gap.
 The standing pre-launch items (domain, brand name, Stripe, contact details)
