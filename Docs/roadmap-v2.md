@@ -185,9 +185,20 @@ The registration/document overhaul for both professions.
 
 ---
 
+## Phase 6 — SEO & AI-search technical layer
+
+Parked here by decision (2026-07-08). Full audit + plan: `Docs/seo-plan.md`.
+Section A of that plan (robots/noindex control, per-page metadata + canonicals
++ OG, JSON-LD entity graph, sitemap, OG images, llms.txt, About/Contact/legal
+pages) is buildable any time and survives the rename; Sections B-D unlock with
+the domain and launch.
+
+---
+
 ## Sequencing note
 
 Phases 0 and 1 are the launch-critical pair (legal + vetting). Phase 2 makes
 matching genuinely good. Phases 3-4 are operational quality. Phase 5 waits on
-the domain. The standing pre-launch items (domain, brand name, Stripe,
-contact details) run in parallel and none of this blocks them.
+the domain; Phase 6 (SEO) is parked last but Section A can slot into any gap.
+The standing pre-launch items (domain, brand name, Stripe, contact details)
+run in parallel and none of this blocks them.
