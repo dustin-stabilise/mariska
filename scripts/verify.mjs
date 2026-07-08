@@ -346,5 +346,58 @@ console.log("\n— vetting v2: engine, terms, contracts —");
   await svc.auth.admin.deleteUser(tmp.user.id);
 }
 
+// ───────────────────────────────────────────────────────────────────────────
+// Phase 2: photos RLS, distance matching, engaged-professional care summary
+// ───────────────────────────────────────────────────────────────────────────
+console.log("\n— phase 2: photos, distance, care summary access —");
+{
+  const svc = createClient(URL_, process.env.SUPABASE_SECRET_KEY, { auth: { persistSession: false } });
+  const client = await login("client@example.com");
+  const grace2 = await login("grace.carer@example.com");
+
+  // pending photo invisible to clients, visible after approval
+  const { data: photo } = await svc.from("profile_photos").insert({
+    professional_id: grace2.session.user.id, storage_path: grace2.session.user.id + "/test.jpg", position: 1,
+  }).select().single();
+  const { data: pendingSeen } = await client.c.from("profile_photos").select("id").eq("id", photo.id);
+  check("pending photo hidden from clients", (pendingSeen ?? []).length === 0);
+  await svc.from("profile_photos").update({ status: "approved" }).eq("id", photo.id);
+  const { data: approvedSeen } = await client.c.from("profile_photos").select("id").eq("id", photo.id);
+  check("approved photo visible to clients", (approvedSeen ?? []).length === 1);
+  const { data: cardPhoto } = await client.c.from("professional_cards").select("photo_path").eq("id", grace2.session.user.id).single();
+  check("card exposes approved photo path", cardPhoto?.photo_path === grace2.session.user.id + "/test.jpg");
+  await svc.from("profile_photos").delete().eq("id", photo.id);
+
+  // distance matching: client in central Manchester, 15 mile radius
+  await svc.from("care_profiles").upsert({
+    client_id: client.session.user.id, care_for: "parent",
+    care_needs: ["memory_support", "meals", "needs_driver"], schedule: ["daytime"],
+    languages: ["English"], interests: ["gardening"],
+    personality_preference: "no_preference", carer_gender_preference: "no_preference",
+    has_pets: false, smoking_household: false,
+    postcode: "M2 4WU", latitude: 53.4808, longitude: -2.2426, radius_miles: 15,
+  }, { onConflict: "client_id" });
+  const { data: cp } = await svc.from("care_profiles").select("*").eq("client_id", client.session.user.id).single();
+  const { data: cards } = await client.c.from("professional_cards").select("*");
+  const { computeMatch } = await import("../src/lib/matching");
+  const results = (cards ?? []).map((c) => ({ name: c.first_name, m: computeMatch(cp, c) }));
+  const included = results.filter((r) => r.m.score !== null).map((r) => r.name);
+  check("distance: only Manchester carer within 15 miles", included.length === 1 && included[0] === "Grace", JSON.stringify(included));
+  const graceResult = results.find((r) => r.name === "Grace");
+  check("distance reason present", graceResult.m.reasons.some((r) => /miles away/.test(r)), JSON.stringify(graceResult.m.reasons));
+  check("driver + cook scoring live (score includes both)", graceResult.m.score === 55, JSON.stringify(graceResult.m));
+
+  // engaged professional reads care profile only when linked
+  const { data: before } = await grace2.c.from("care_profiles").select("id").eq("client_id", client.session.user.id);
+  check("unengaged professional cannot read care profile", (before ?? []).length === 0);
+  const { data: iv } = await svc.from("interview_requests").insert({
+    client_id: client.session.user.id, professional_id: grace2.session.user.id,
+  }).select().single();
+  const { data: after } = await grace2.c.from("care_profiles").select("care_needs").eq("client_id", client.session.user.id);
+  check("engaged professional reads care profile", (after ?? []).length === 1);
+  await svc.from("interview_requests").delete().eq("id", iv.id);
+  await svc.from("care_profiles").delete().eq("client_id", client.session.user.id);
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

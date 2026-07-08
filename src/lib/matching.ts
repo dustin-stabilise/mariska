@@ -35,14 +35,34 @@ export const CARE_NEEDS = [
   { value: "companionship", label: "Companionship & conversation" },
   { value: "personal_care", label: "Personal care (washing, dressing)" },
   { value: "mobility", label: "Help moving around" },
-  { value: "memory_support", label: "Memory support" },
-  { value: "medication", label: "Medication prompts" },
+  { value: "memory_support", label: "Memory support (gentle help with forgetfulness and routines)" },
+  { value: "medication_prompts", label: "Medication prompts (reminders to take them)" },
+  { value: "medication_support", label: "Medication support (help taking them)" },
   { value: "meals", label: "Meals & cooking" },
-  { value: "household", label: "Light housework & errands" },
+  { value: "household", label: "Light housework" },
+  { value: "running_affairs", label: "Running affairs & errands (post, bills, shopping)" },
+  { value: "appointments_outings", label: "Accompanying to appointments & outings" },
+  { value: "needs_driver", label: "A carer who drives" },
   { value: "overnight", label: "Overnight presence" },
   { value: "complex", label: "Complex or clinical needs" },
   { value: "end_of_life", label: "End-of-life care" },
 ] as const;
+
+/** Not offered yet (product-owner decision 2026-07-08): shown greyed out. */
+export const DISABLED_CARE_NEEDS = ["complex", "end_of_life"];
+export const DISABLED_CARE_CATEGORIES = [
+  "complex",
+  "end_of_life",
+  "mental_health_nurse",
+  "learning_disability_nurse",
+];
+
+/** ~20 most spoken languages in UK households + Other free entry in UIs. */
+export const LANGUAGES = [
+  "English", "Welsh", "Polish", "Punjabi", "Urdu", "Bengali", "Gujarati",
+  "Arabic", "French", "Portuguese", "Spanish", "Romanian", "Italian",
+  "Somali", "Turkish", "Tamil", "Cantonese", "Mandarin", "Hindi", "Lithuanian",
+];
 
 export const SCHEDULE_OPTIONS = [
   { value: "mornings", label: "Mornings" },
@@ -106,6 +126,10 @@ const NEED_TO_CATEGORIES: Record<string, string[]> = {
   mobility: ["day", "live_in"],
   memory_support: ["dementia", "dementia_nurse"],
   medication: ["day", "complex", "general_nurse", "community_nurse"],
+  medication_prompts: ["day", "companionship", "live_in"],
+  medication_support: ["day", "complex", "general_nurse", "community_nurse"],
+  running_affairs: ["day", "companionship"],
+  appointments_outings: ["day", "companionship"],
   meals: ["day", "live_in"],
   household: ["day", "companionship"],
   overnight: ["night"],
@@ -124,6 +148,9 @@ const SCHEDULE_TO_AVAILABILITY: Record<string, string[]> = {
 };
 
 export type CareProfileForMatching = {
+  latitude?: number | null;
+  longitude?: number | null;
+  radius_miles?: number | null;
   care_needs: string[];
   schedule: string[];
   languages: string[];
@@ -135,6 +162,10 @@ export type CareProfileForMatching = {
 };
 
 export type CardForMatching = {
+  latitude?: number | null;
+  longitude?: number | null;
+  can_drive?: boolean | null;
+  cooking_skill?: string | null;
   care_categories: string[];
   availability_options: string[];
   languages: string[] | null;
@@ -150,6 +181,23 @@ export type MatchResult = {
   badge: "great" | "good" | null;
   reasons: string[];
 };
+
+/** Great-circle distance in miles (client-safe, pure math). */
+export function distanceMiles(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number {
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const R = 3958.8;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
 
 export function computeMatch(
   profile: CareProfileForMatching,
@@ -167,6 +215,30 @@ export function computeMatch(
   let score = 0;
   const reasons: string[] = [];
 
+  // Distance (live-in exempt: those carers relocate). Beyond the client's
+  // radius -> excluded entirely; otherwise closer scores higher.
+  const wantsLiveIn = profile.schedule.includes("live_in");
+  if (
+    !wantsLiveIn &&
+    profile.latitude != null && profile.longitude != null &&
+    card.latitude != null && card.longitude != null
+  ) {
+    const miles = distanceMiles(profile.latitude, profile.longitude, card.latitude, card.longitude);
+    const radius = profile.radius_miles ?? 15;
+    if (miles > radius) {
+      return { score: null, badge: null, reasons: [] };
+    }
+    if (miles <= 5) {
+      score += 12;
+      reasons.push(miles < 1.5 ? "Less than 2 miles away" : `About ${Math.round(miles)} miles away`);
+    } else if (miles <= 10) {
+      score += 8;
+      reasons.push(`About ${Math.round(miles)} miles away`);
+    } else {
+      score += 4;
+    }
+  }
+
   // Shared language (strongest signal for connection).
   const cardLangs = (card.languages ?? []).map((l) => l.toLowerCase());
   const sharedLangs = profile.languages.filter((l) =>
@@ -181,11 +253,12 @@ export function computeMatch(
 
   // Care-need fit against the carer's categories.
   const categories = card.care_categories ?? [];
-  const coveredNeeds = profile.care_needs.filter((need) =>
+  const categoryNeeds = profile.care_needs.filter((n) => n !== "needs_driver");
+  const coveredNeeds = categoryNeeds.filter((need) =>
     (NEED_TO_CATEGORIES[need] ?? []).some((c) => categories.includes(c))
   );
-  if (profile.care_needs.length > 0 && coveredNeeds.length > 0) {
-    const coverage = coveredNeeds.length / profile.care_needs.length;
+  if (categoryNeeds.length > 0 && coveredNeeds.length > 0) {
+    const coverage = coveredNeeds.length / categoryNeeds.length;
     score += Math.round(25 * coverage);
     const headline = coveredNeeds.find((n) =>
       ["memory_support", "end_of_life", "complex"].includes(n)
@@ -242,6 +315,21 @@ export function computeMatch(
     for (const interest of sharedInterests.slice(0, 2)) {
       reasons.push(`You both enjoy ${chipLabel(INTEREST_CHIPS, interest).toLowerCase()}`);
     }
+  }
+
+  // Driver requirement.
+  if (profile.care_needs.includes("needs_driver") && card.can_drive) {
+    score += 8;
+    reasons.push("Drives, for appointments and outings");
+  }
+
+  // Cooking, when meals are part of the care.
+  if (
+    profile.care_needs.includes("meals") &&
+    (card.cooking_skill === "good" || card.cooking_skill === "very_good")
+  ) {
+    score += 4;
+    reasons.push(card.cooking_skill === "very_good" ? "A great cook" : "A confident cook");
   }
 
   // Home compatibility.

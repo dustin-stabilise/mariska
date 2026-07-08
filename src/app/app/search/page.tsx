@@ -4,11 +4,16 @@ import { Constants, type Database } from "@/lib/supabase/database.types";
 import { PageHeading, Card, TierBadge, EmptyState } from "@/components/ui";
 import {
   AvailabilityPill,
-  Banner,
   Chip,
   labelize,
 } from "@/components/client/shared";
-import { computeMatch, type MatchResult } from "@/lib/matching";
+import {
+  computeMatch,
+  distanceMiles,
+  DISABLED_CARE_CATEGORIES,
+  type MatchResult,
+} from "@/lib/matching";
+import { RADIUS_MILES_OPTIONS } from "@/lib/profile-fields";
 
 type CareCategory = Database["public"]["Enums"]["care_category"];
 type AvailabilityStatus = Database["public"]["Enums"]["availability_status"];
@@ -35,12 +40,19 @@ export default async function SearchPage({
   const { supabase } = await requireRole("client");
 
   const kind = pick<Kind>(sp.kind, ["carer", "nurse"]);
-  const category = pick<CareCategory>(sp.category, CARE_CATEGORIES);
+  const category = pick<CareCategory>(
+    sp.category,
+    CARE_CATEGORIES.filter((c) => !DISABLED_CARE_CATEGORIES.includes(c))
+  );
   const availability = pick<AvailabilityStatus>(
     sp.availability,
     AVAILABILITY_STATUSES
   );
   const region = typeof sp.region === "string" ? sp.region.trim() : "";
+  const radiusParam = pick(
+    sp.radius,
+    RADIUS_MILES_OPTIONS.map(String)
+  );
 
   let query = supabase
     .from("professional_cards")
@@ -59,22 +71,35 @@ export default async function SearchPage({
     supabase.from("care_profiles").select("*").maybeSingle(),
   ]);
 
+  // The radius select overrides the profile's saved radius for this search only.
+  const profileRadius = careProfile?.radius_miles ?? 15;
+  const searchRadius = radiusParam ? Number(radiusParam) : profileRadius;
+  const hasClientCoords =
+    careProfile?.latitude != null && careProfile?.longitude != null;
+
   // Personalise: score every card against the care profile, drop explicit
-  // gender-preference mismatches, best matches first (stable sort keeps the
-  // existing tier order as the tiebreak).
+  // gender-preference mismatches and carers beyond the search radius, best
+  // matches first (stable sort keeps the existing tier order as the tiebreak).
   const matchById = new Map<string, MatchResult>();
   let cards = pros ?? [];
   if (careProfile) {
     cards = cards.filter((p) => {
-      const match = computeMatch(careProfile, {
-        care_categories: p.care_categories ?? [],
-        availability_options: p.availability_options ?? [],
-        languages: p.languages,
-        interests: p.interests,
-        gender: p.gender,
-        personality_style: p.personality_style,
-        comfortable_with: p.comfortable_with,
-      });
+      const match = computeMatch(
+        { ...careProfile, radius_miles: searchRadius },
+        {
+          latitude: p.latitude,
+          longitude: p.longitude,
+          can_drive: p.can_drive,
+          cooking_skill: p.cooking_skill,
+          care_categories: p.care_categories ?? [],
+          availability_options: p.availability_options ?? [],
+          languages: p.languages,
+          interests: p.interests,
+          gender: p.gender,
+          personality_style: p.personality_style,
+          comfortable_with: p.comfortable_with,
+        }
+      );
       if (match.score === null) return false;
       if (p.id) matchById.set(p.id, match);
       return true;
@@ -86,7 +111,13 @@ export default async function SearchPage({
     );
   }
 
-  const hasFilters = Boolean(kind || category || availability || region);
+  const hasFilters = Boolean(
+    kind ||
+      category ||
+      availability ||
+      region ||
+      (radiusParam && Number(radiusParam) !== profileRadius)
+  );
 
   return (
     <div>
@@ -97,7 +128,10 @@ export default async function SearchPage({
       />
 
       <Card className="mb-8">
-        <form method="GET" className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <form
+          method="GET"
+          className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4"
+>
           <div>
             <label
               htmlFor="kind"
@@ -130,11 +164,17 @@ export default async function SearchPage({
               className="w-full rounded-xl border border-hairline-strong bg-cream px-3 py-2.5 text-[15px] text-ink focus:outline-none focus:border-green"
             >
               <option value="">Any</option>
-              {CARE_CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {labelize(c)}
-                </option>
-              ))}
+              {CARE_CATEGORIES.map((c) =>
+                DISABLED_CARE_CATEGORIES.includes(c) ? (
+                  <option key={c} value={c} disabled>
+                    {labelize(c)} (not offered yet)
+                  </option>
+                ) : (
+                  <option key={c} value={c}>
+                    {labelize(c)}
+                  </option>
+                )
+              )}
             </select>
           </div>
           <div>
@@ -174,6 +214,28 @@ export default async function SearchPage({
               ))}
             </select>
           </div>
+          {hasClientCoords && (
+            <div>
+              <label
+                htmlFor="radius"
+                className="block text-[13px] font-semibold uppercase tracking-wide text-faint mb-1.5"
+              >
+                Distance
+              </label>
+              <select
+                id="radius"
+                name="radius"
+                defaultValue={String(searchRadius)}
+                className="w-full rounded-xl border border-hairline-strong bg-cream px-3 py-2.5 text-[15px] text-ink focus:outline-none focus:border-green"
+              >
+                {RADIUS_MILES_OPTIONS.map((r) => (
+                  <option key={r} value={r}>
+                    Within {r} miles
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <div className="flex items-end gap-3">
             <button
               type="submit"
@@ -191,6 +253,17 @@ export default async function SearchPage({
             )}
           </div>
         </form>
+        {careProfile && !careProfile.postcode && (
+          <p className="mt-3 text-[13px] text-muted">
+            <Link
+              href="/app/care-profile"
+              className="font-semibold text-green hover:text-green-dark"
+            >
+              Add your postcode
+            </Link>{" "}
+            for distance-sorted matches.
+          </p>
+        )}
       </Card>
 
       {sp.matched === "1" && careProfile && (
@@ -241,6 +314,23 @@ export default async function SearchPage({
           <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
             {cards.map((p) => {
               const match = p.id ? matchById.get(p.id) : undefined;
+              const miles =
+                careProfile?.latitude != null &&
+                careProfile?.longitude != null &&
+                p.latitude != null &&
+                p.longitude != null
+                  ? Math.max(
+                      1,
+                      Math.round(
+                        distanceMiles(
+                          careProfile.latitude,
+                          careProfile.longitude,
+                          p.latitude,
+                          p.longitude
+                        )
+                      )
+                    )
+                  : null;
               return (
                 <Card key={p.id} className="flex flex-col">
                   {match?.badge && (
@@ -255,13 +345,27 @@ export default async function SearchPage({
                     </span>
                   )}
                   <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h3 className="font-serif text-xl text-ink">
-                        {p.first_name}
-                      </h3>
-                      <p className="text-[13.5px] text-faint capitalize mt-0.5">
-                        {p.kind} · {p.years_experience ?? 0} yrs experience
-                      </p>
+                    <div className="flex items-center gap-3">
+                      {p.photo_path && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={
+                            supabase.storage
+                              .from("profile-photos")
+                              .getPublicUrl(p.photo_path).data.publicUrl
+                          }
+                          alt={`Photo of ${p.first_name ?? "this professional"}`}
+                          className="w-14 h-14 flex-none rounded-full object-cover border border-hairline"
+                        />
+                      )}
+                      <div>
+                        <h3 className="font-serif text-xl text-ink">
+                          {p.first_name}
+                        </h3>
+                        <p className="text-[13.5px] text-faint capitalize mt-0.5">
+                          {p.kind} · {p.years_experience ?? 0} yrs experience
+                        </p>
+                      </div>
                     </div>
                     <TierBadge tier={p.tier ?? "none"} />
                   </div>
@@ -286,6 +390,12 @@ export default async function SearchPage({
 
                   <p className="text-[14px] text-muted mt-2">
                     {[p.location, p.region].filter(Boolean).join(", ")}
+                    {miles !== null && (
+                      <span className="text-[13px] text-faint">
+                        {" "}
+                        · ~{miles} mile{miles === 1 ? "" : "s"} away
+                      </span>
+                    )}
                   </p>
 
                   {(p.care_categories?.length ?? 0) > 0 && (

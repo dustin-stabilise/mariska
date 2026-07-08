@@ -53,21 +53,36 @@ export default async function ProfessionalProfilePage({
     );
   }
 
-  const [{ data: profileRow }, { data: card }, { data: interviews }, { data: careProfile }] =
-    await Promise.all([
-      supabase.from("profiles").select("first_name").eq("id", id).maybeSingle(),
-      supabase
-        .from("professional_cards")
-        .select("first_name")
-        .eq("id", id)
-        .maybeSingle(),
-      supabase
-        .from("interview_requests")
-        .select("id, status, scheduled_at, created_at")
-        .eq("professional_id", id)
-        .order("created_at", { ascending: false }),
-      supabase.from("care_profiles").select("*").maybeSingle(),
-    ]);
+  const [
+    { data: profileRow },
+    { data: card },
+    { data: interviews },
+    { data: careProfile },
+    { data: photoRows },
+  ] = await Promise.all([
+    supabase.from("profiles").select("first_name").eq("id", id).maybeSingle(),
+    supabase
+      .from("professional_cards")
+      .select("first_name")
+      .eq("id", id)
+      .maybeSingle(),
+    supabase
+      .from("interview_requests")
+      .select("id, status, scheduled_at, created_at")
+      .eq("professional_id", id)
+      .order("created_at", { ascending: false }),
+    supabase.from("care_profiles").select("*").maybeSingle(),
+    // RLS only exposes approved photos to clients; the explicit filter keeps
+    // the UI consistent with that rule.
+    supabase
+      .from("profile_photos")
+      .select("id, storage_path, position")
+      .eq("professional_id", id)
+      .eq("status", "approved")
+      .order("position", { ascending: true })
+      .limit(3),
+  ]);
+  const photos = photoRows ?? [];
 
   const match = careProfile
     ? computeMatch(careProfile, {
@@ -138,6 +153,23 @@ export default async function ProfessionalProfilePage({
         {/* Main column */}
         <div className="lg:col-span-2 space-y-6">
           <Card>
+            {photos.length > 0 && (
+              <div className="flex gap-3 mb-5">
+                {photos.map((photo) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={photo.id}
+                    src={
+                      supabase.storage
+                        .from("profile-photos")
+                        .getPublicUrl(photo.storage_path).data.publicUrl
+                    }
+                    alt={`Photo of ${firstName}`}
+                    className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl object-cover border border-hairline"
+                  />
+                ))}
+              </div>
+            )}
             <div className="flex flex-wrap items-center gap-3 mb-5">
               <AvailabilityPill status={pro.availability_status} />
               <CompliancePill status={pro.compliance_status} />

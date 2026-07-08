@@ -3,22 +3,36 @@ import { requireRole } from "@/lib/auth-helpers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { PageHeading, Card, EmptyState } from "@/components/ui";
 import { DocReviewForm } from "@/components/admin/doc-review-form";
+import { PhotoReviewForm } from "@/components/admin/photo-review-form";
 import { certificateType } from "@/lib/compliance-requirements";
 import { formatDate, humanise, nameMap } from "@/lib/admin/helpers";
 
 export default async function AdminDocumentsPage() {
   const { supabase } = await requireRole("admin");
 
-  const { data: docs } = await supabase
-    .from("compliance_documents")
-    .select(
-      "id, professional_id, doc_type, certificate_type, title, issue_date, expiry_date, created_at, storage_path"
-    )
-    .eq("status", "pending_review")
-    .order("created_at", { ascending: true });
+  const [{ data: docs }, { data: photos }] = await Promise.all([
+    supabase
+      .from("compliance_documents")
+      .select(
+        "id, professional_id, doc_type, certificate_type, title, issue_date, expiry_date, created_at, storage_path"
+      )
+      .eq("status", "pending_review")
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("profile_photos")
+      .select("id, professional_id, storage_path, position, created_at")
+      .eq("status", "pending_review")
+      .order("created_at", { ascending: true }),
+  ]);
   const queue = docs ?? [];
+  const photoQueue = photos ?? [];
 
-  const proIds = [...new Set(queue.map((d) => d.professional_id))];
+  const proIds = [
+    ...new Set([
+      ...queue.map((d) => d.professional_id),
+      ...photoQueue.map((p) => p.professional_id),
+    ]),
+  ];
   const { data: nameRows } = proIds.length
     ? await supabase.from("profiles").select("id, first_name, last_name").in("id", proIds)
     : { data: [] };
@@ -43,6 +57,49 @@ export default async function AdminDocumentsPage() {
         title="Document review"
         intro={`${queue.length} document${queue.length === 1 ? "" : "s"} waiting for a decision, oldest first.`}
       />
+
+      {photoQueue.length > 0 && (
+        <Card className="mb-6">
+          <h2 className="font-serif text-xl text-ink mb-1">
+            Photos awaiting review
+          </h2>
+          <p className="text-[14px] text-muted mb-4">
+            Approved photos appear on the professional&apos;s profile and in
+            search results.
+          </p>
+          <ul className="flex flex-wrap gap-6">
+            {photoQueue.map((photo) => (
+              <li key={photo.id} className="w-44">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={
+                    supabase.storage
+                      .from("profile-photos")
+                      .getPublicUrl(photo.storage_path).data.publicUrl
+                  }
+                  alt={`Photo of ${names.get(photo.professional_id) ?? "a professional"}`}
+                  className="w-44 h-44 object-cover rounded-xl border border-hairline"
+                />
+                <div className="mt-2 text-[13.5px]">
+                  <Link
+                    href={`/app/admin/professionals/${photo.professional_id}`}
+                    className="font-semibold text-green hover:text-green-dark"
+                  >
+                    {names.get(photo.professional_id) ?? "Unknown"}
+                  </Link>
+                  <span className="text-muted">
+                    {" "}
+                    · Uploaded {formatDate(photo.created_at)}
+                  </span>
+                </div>
+                <div className="mt-2">
+                  <PhotoReviewForm photoId={photo.id} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       {queue.length === 0 ? (
         <EmptyState

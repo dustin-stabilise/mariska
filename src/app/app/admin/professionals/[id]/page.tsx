@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { formatGBP } from "@/lib/pricing";
 import { PageHeading, Card, CompliancePill, TierBadge, Button } from "@/components/ui";
 import { DocReviewForm } from "@/components/admin/doc-review-form";
+import { PhotoReviewForm } from "@/components/admin/photo-review-form";
 import {
   issueContract,
   markInterviewPassed,
@@ -64,12 +65,17 @@ export default async function AdminProfessionalDetailPage({
   ]);
   if (!pro || !person) notFound();
 
-  const [docsRes, placementsRes, interviewsRes, flagsRes, termsRes] = await Promise.all([
+  const [docsRes, photosRes, placementsRes, interviewsRes, flagsRes, termsRes] = await Promise.all([
     supabase
       .from("compliance_documents")
       .select("*")
       .eq("professional_id", id)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("profile_photos")
+      .select("id, storage_path, status, position, created_at")
+      .eq("professional_id", id)
+      .order("position", { ascending: true }),
     supabase
       .from("placements")
       .select("id, client_id, fee_amount, status, started_at, ended_at")
@@ -92,6 +98,7 @@ export default async function AdminProfessionalDetailPage({
       .order("accepted_at", { ascending: false }),
   ]);
   const docs = docsRes.data ?? [];
+  const photos = photosRes.data ?? [];
   const placements = placementsRes.data ?? [];
   const interviews = interviewsRes.data ?? [];
   const flags = flagsRes.data ?? [];
@@ -219,6 +226,45 @@ export default async function AdminProfessionalDetailPage({
                 }
               />
             </dl>
+          </Card>
+
+          {/* Profile photos */}
+          <Card>
+            <h2 className="font-serif text-xl text-ink mb-1">Profile photos</h2>
+            <p className="text-[14px] text-muted mb-4">
+              Only approved photos are shown to clients.
+            </p>
+            {photos.length === 0 ? (
+              <p className="text-muted text-[14.5px]">No photos uploaded yet.</p>
+            ) : (
+              <ul className="flex flex-wrap gap-5">
+                {photos.map((photo) => (
+                  <li key={photo.id} className="w-40">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={
+                        supabase.storage
+                          .from("profile-photos")
+                          .getPublicUrl(photo.storage_path).data.publicUrl
+                      }
+                      alt={`Photo ${photo.position} of ${person.first_name ?? "this professional"}`}
+                      className="w-40 h-40 object-cover rounded-xl border border-hairline"
+                    />
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      <span className={statusPillClass(photo.status)}>
+                        {humanise(photo.status)}
+                      </span>
+                      <span className="text-[12.5px] text-faint">
+                        {formatDate(photo.created_at)}
+                      </span>
+                    </div>
+                    <div className="mt-2">
+                      <PhotoReviewForm photoId={photo.id} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </Card>
 
           {/* Vetting requirements (engine v2) */}

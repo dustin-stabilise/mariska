@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth-helpers";
 import { acceptBooking, cancelBooking } from "@/lib/actions/bookings";
 import { COMMISSION, formatGBP } from "@/lib/pricing";
 import { PageHeading, Card, Stat, Button, EmptyState } from "@/components/ui";
+import { CareSummary } from "@/components/pro/care-summary";
 
 export const dynamic = "force-dynamic";
 
@@ -65,7 +66,7 @@ export default async function ProBookingsPage() {
     supabase
       .from("bookings")
       .select(
-        "id, status, starts_at, ends_at, hours, hourly_rate, care_amount, carer_net_amount, client_notes, cancelled_reason, created_at, payments:payment_id (status)"
+        "id, client_id, status, starts_at, ends_at, hours, hourly_rate, care_amount, carer_net_amount, client_notes, cancelled_reason, created_at, payments:payment_id (status)"
       )
       .eq("professional_id", user.id)
       .order("starts_at", { ascending: false }),
@@ -78,6 +79,15 @@ export default async function ProBookingsPage() {
   const bookings = bookingRows ?? [];
   const payouts: PayoutRow[] = payoutRows ?? [];
   const payoutByBooking = new Map(payouts.map((p) => [p.booking_id, p]));
+
+  // Care profiles of the clients behind these bookings. RLS only returns the
+  // ones this professional is allowed to see; anyone else simply has no row.
+  const clientIds = [...new Set(bookings.map((b) => b.client_id))];
+  const { data: careProfiles } =
+    clientIds.length > 0
+      ? await supabase.from("care_profiles").select("*").in("client_id", clientIds)
+      : { data: null };
+  const careByClient = new Map((careProfiles ?? []).map((p) => [p.client_id, p]));
 
   const proposals = bookings
     .filter((b) => b.status === "proposed")
@@ -176,6 +186,10 @@ export default async function ProBookingsPage() {
                       </p>
                     )}
 
+                    {careByClient.has(b.client_id) && (
+                      <CareSummary profile={careByClient.get(b.client_id)!} />
+                    )}
+
                     <div className="mt-4 flex flex-wrap items-center gap-3">
                       <form action={acceptBooking}>
                         <input type="hidden" name="bookingId" value={b.id} />
@@ -232,6 +246,10 @@ export default async function ProBookingsPage() {
                         <p className="mt-3 text-[14.5px] text-body bg-sand/60 rounded-xl px-4 py-3">
                           &ldquo;{b.client_notes}&rdquo;
                         </p>
+                      )}
+
+                      {careByClient.has(b.client_id) && (
+                        <CareSummary profile={careByClient.get(b.client_id)!} />
                       )}
 
                       <form

@@ -2,6 +2,7 @@ import { requireRole } from "@/lib/auth-helpers";
 import { respondToInterview } from "@/lib/actions/professional";
 import { PageHeading, Card, EmptyState, Button } from "@/components/ui";
 import { StatusPill } from "@/components/pro/status-pill";
+import { CareSummary } from "@/components/pro/care-summary";
 
 export const dynamic = "force-dynamic";
 
@@ -29,12 +30,21 @@ export default async function ProInterviewsPage() {
 
   const { data: requests } = await supabase
     .from("interview_requests")
-    .select("id, status, scheduled_at, video_url, duration_minutes, client_notes, created_at")
+    .select("id, client_id, status, scheduled_at, video_url, duration_minutes, client_notes, created_at")
     .eq("professional_id", user.id)
     .order("created_at", { ascending: false });
 
   const interviews = requests ?? [];
   const open = interviews.filter((r) => r.status === "requested").length;
+
+  // Care profiles of the clients behind these requests. RLS only returns the
+  // ones this professional is allowed to see; anyone else simply has no row.
+  const clientIds = [...new Set(interviews.map((r) => r.client_id))];
+  const { data: careProfiles } =
+    clientIds.length > 0
+      ? await supabase.from("care_profiles").select("*").in("client_id", clientIds)
+      : { data: null };
+  const careByClient = new Map((careProfiles ?? []).map((p) => [p.client_id, p]));
 
   return (
     <div>
@@ -81,6 +91,10 @@ export default async function ProInterviewsPage() {
                 <p className="mt-3 text-[15px] text-body bg-sand/60 rounded-xl px-4 py-3">
                   &ldquo;{req.client_notes}&rdquo;
                 </p>
+              )}
+
+              {careByClient.has(req.client_id) && (
+                <CareSummary profile={careByClient.get(req.client_id)!} />
               )}
 
               {req.scheduled_at && (

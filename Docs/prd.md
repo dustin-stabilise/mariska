@@ -170,6 +170,20 @@ A light, skippable questionnaire powers personalised matching:
 - Vocabularies live in code (one file) so adding chips is trivial; decisions
   on data sensitivity: needs-based wording, faith only as an optional
   interest chip, everything optional and editable.
+- **Phase 2 additions (2026-07-08):** postcode-based proximity (postcodes.io
+  geocoding at save time; default radius 15 miles, client-adjustable 5-50;
+  live-in searches exempt; carers beyond the radius are excluded, closer ones
+  score higher with "About X miles away" reasons). New matchable facts:
+  can-drive (pairs with the "a carer who drives" need), cooking skill (pairs
+  with meals), 20-language multi-select. Care-needs vocabulary expanded
+  (running affairs & errands, accompanying to appointments & outings,
+  medication prompts vs medication support, plain-English memory support).
+  Complex care and end-of-life (carers) and mental-health/learning-disability
+  nursing are greyed out as "not offered yet" on both sides. Live-in requests
+  require the client to confirm a spare room and bathroom access. Each
+  professional has up to three photos, admin-approved before clients see
+  them. Professionals see an "About the person" care summary for clients
+  they're actually engaged with (interview or booking), never before.
 
 ## 8. Billing & money movement (current state)
 

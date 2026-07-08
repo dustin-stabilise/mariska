@@ -18,8 +18,11 @@ import {
 import {
   CARER_PERSONALITY_OPTIONS,
   COMFORTABLE_WITH_OPTIONS,
+  DISABLED_CARE_CATEGORIES,
   INTEREST_CHIPS,
+  LANGUAGES,
 } from "@/lib/matching";
+import { splitLanguages } from "@/lib/profile-fields";
 import { Button, Card } from "@/components/ui";
 
 const inputClass =
@@ -73,6 +76,8 @@ export function ProfileForm({
     bio: string;
     location: string;
     region: string;
+    postcode: string | null;
+    cooking_skill: string | null;
     years_experience: number;
     care_categories: CareCategory[];
     availability_status: AvailabilityStatus;
@@ -100,6 +105,7 @@ export function ProfileForm({
     {}
   );
   const categories = careCategoriesFor(pro.kind);
+  const savedLanguages = splitLanguages(pro.languages);
 
   return (
     <form action={formAction} className="space-y-6 max-w-3xl">
@@ -161,12 +167,24 @@ export function ProfileForm({
             placeholder="Tell families about your experience, approach and what makes you a good match."
           />
         </Field>
-        <div className="grid sm:grid-cols-3 gap-5">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           <Field label="Location" hint="Town or city.">
             <input name="location" defaultValue={pro.location} className={inputClass} />
           </Field>
           <Field label="Region" hint="e.g. South East.">
             <input name="region" defaultValue={pro.region} className={inputClass} />
+          </Field>
+          <Field
+            label="Postcode"
+            hint="So families see how far away you are. Never shown in full."
+          >
+            <input
+              name="postcode"
+              defaultValue={pro.postcode ?? ""}
+              placeholder="e.g. M1 1AE"
+              autoComplete="postal-code"
+              className={inputClass}
+            />
           </Field>
           <Field label="Years of experience">
             <input
@@ -191,21 +209,38 @@ export function ProfileForm({
         intro="Tick everything you're qualified and happy to take on."
       >
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
-          {categories.map((cat) => (
-            <label
-              key={cat.value}
-              className="flex items-center gap-2.5 rounded-xl border border-hairline px-3.5 py-2.5 text-[14.5px] text-body cursor-pointer hover:border-green has-checked:border-green has-checked:bg-green/5"
-            >
-              <input
-                type="checkbox"
-                name="care_categories"
-                value={cat.value}
-                defaultChecked={pro.care_categories.includes(cat.value)}
-                className="accent-green w-4 h-4"
-              />
-              {cat.label}
-            </label>
-          ))}
+          {categories.map((cat) => {
+            const notOffered = DISABLED_CARE_CATEGORIES.includes(cat.value);
+            return (
+              <label
+                key={cat.value}
+                className={
+                  notOffered
+                    ? "flex items-center gap-2.5 rounded-xl border border-hairline bg-sand/40 px-3.5 py-2.5 text-[14.5px] text-faint cursor-not-allowed"
+                    : "flex items-center gap-2.5 rounded-xl border border-hairline px-3.5 py-2.5 text-[14.5px] text-body cursor-pointer hover:border-green has-checked:border-green has-checked:bg-green/5"
+                }
+              >
+                <input
+                  type="checkbox"
+                  name="care_categories"
+                  value={cat.value}
+                  disabled={notOffered}
+                  defaultChecked={
+                    !notOffered && pro.care_categories.includes(cat.value)
+                  }
+                  className="accent-green w-4 h-4"
+                />
+                <span>
+                  {cat.label}
+                  {notOffered && (
+                    <span className="block text-[11.5px] text-faint">
+                      Not offered yet
+                    </span>
+                  )}
+                </span>
+              </label>
+            );
+          })}
         </div>
       </Section>
 
@@ -284,11 +319,30 @@ export function ProfileForm({
             />
           </Field>
         </div>
-        <Field label="Languages" hint="Comma-separated, e.g. English, Polish.">
+        <Field label="Languages" hint="Tick every language you speak comfortably.">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+            {LANGUAGES.map((lang) => (
+              <label
+                key={lang}
+                className="flex items-center gap-2.5 rounded-xl border border-hairline px-3.5 py-2.5 text-[14.5px] text-body cursor-pointer hover:border-green has-checked:border-green has-checked:bg-green/5"
+              >
+                <input
+                  type="checkbox"
+                  name="languages"
+                  value={lang}
+                  defaultChecked={savedLanguages.picked.includes(lang)}
+                  className="accent-green w-4 h-4"
+                />
+                {lang}
+              </label>
+            ))}
+          </div>
           <input
-            name="languages"
-            defaultValue={pro.languages.join(", ")}
-            className={inputClass}
+            name="other_languages"
+            defaultValue={savedLanguages.other}
+            placeholder="Any other languages, separated by commas"
+            aria-label="Other languages"
+            className={`${inputClass} mt-2.5`}
           />
         </Field>
         <div className="grid sm:grid-cols-2 gap-5">
@@ -387,6 +441,21 @@ export function ProfileForm({
               </label>
             ))}
           </div>
+        </Field>
+        <Field
+          label="Cooking"
+          hint="Shown to families who'd like help with meals. Optional."
+        >
+          <select
+            name="cooking_skill"
+            defaultValue={pro.cooking_skill ?? ""}
+            className={`${inputClass} sm:max-w-xs`}
+          >
+            <option value="">Rather not say</option>
+            <option value="basic">Basic</option>
+            <option value="good">Good cook</option>
+            <option value="very_good">Very good cook</option>
+          </select>
         </Field>
         <Field
           label="Driving"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import {
   saveCareProfile,
   type CareProfileActionState,
@@ -9,11 +9,14 @@ import {
   AGE_BANDS,
   CARE_FOR_OPTIONS,
   CARE_NEEDS,
+  DISABLED_CARE_NEEDS,
   GENDER_PREFERENCE_OPTIONS,
   INTEREST_CHIPS,
+  LANGUAGES,
   PERSONALITY_OPTIONS,
   SCHEDULE_OPTIONS,
 } from "@/lib/matching";
+import { RADIUS_MILES_OPTIONS, splitLanguages } from "@/lib/profile-fields";
 import type { Database } from "@/lib/supabase/database.types";
 import { Button, Card } from "@/components/ui";
 
@@ -39,12 +42,26 @@ function ChipCheckbox({
   value,
   label,
   defaultChecked,
+  disabled = false,
+  onCheckedChange,
 }: {
   name: string;
   value: string;
   label: string;
   defaultChecked: boolean;
+  disabled?: boolean;
+  onCheckedChange?: (checked: boolean) => void;
 }) {
+  if (disabled) {
+    return (
+      <span
+        title="Not offered just yet"
+        className="inline-flex px-3.5 py-1.5 rounded-full border border-hairline bg-sand/50 text-[14px] text-faint cursor-not-allowed"
+      >
+        {label}
+      </span>
+    );
+  }
   return (
     <label className="cursor-pointer">
       <input
@@ -52,6 +69,11 @@ function ChipCheckbox({
         name={name}
         value={value}
         defaultChecked={defaultChecked}
+        onChange={
+          onCheckedChange
+            ? (e) => onCheckedChange(e.target.checked)
+            : undefined
+        }
         className="peer sr-only"
       />
       <span className="inline-flex px-3.5 py-1.5 rounded-full border border-hairline-strong bg-cream text-[14px] text-body transition-colors peer-checked:bg-green peer-checked:border-green peer-checked:text-cream peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-green">
@@ -72,6 +94,10 @@ export function CareProfileForm({
     CareProfileActionState,
     FormData
   >(saveCareProfile, undefined);
+  const [liveIn, setLiveIn] = useState(
+    profile?.schedule.includes("live_in") ?? false
+  );
+  const savedLanguages = splitLanguages(profile?.languages ?? []);
 
   return (
     <form action={formAction} className="space-y-6 max-w-3xl">
@@ -134,6 +160,58 @@ export function CareProfileForm({
 
       <Card>
         <SectionHeading
+          title="Where the care happens"
+          hint="We use the postcode to suggest carers nearby. Your full address is never shown."
+        />
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="postcode" className={labelClass}>
+              Postcode
+            </label>
+            <input
+              id="postcode"
+              name="postcode"
+              type="text"
+              defaultValue={profile?.postcode ?? ""}
+              placeholder="e.g. M1 1AE"
+              autoComplete="postal-code"
+              className={inputClass}
+            />
+            {state?.postcodeError ? (
+              <p className="text-[13px] text-red-700 mt-1.5">
+                {state.postcodeError}
+              </p>
+            ) : (
+              <p className="text-[13px] text-muted mt-1.5">
+                UK postcodes only, e.g. M1 1AE or SW1A 1AA.
+              </p>
+            )}
+          </div>
+          <div>
+            <label htmlFor="radiusMiles" className={labelClass}>
+              How far should carers travel to you?
+            </label>
+            <select
+              id="radiusMiles"
+              name="radiusMiles"
+              defaultValue={String(profile?.radius_miles ?? 15)}
+              className={inputClass}
+            >
+              {RADIUS_MILES_OPTIONS.map((r) => (
+                <option key={r} value={r}>
+                  Up to {r} miles
+                </option>
+              ))}
+            </select>
+            <p className="text-[13px] text-muted mt-1.5">
+              Live-in searches ignore distance, as those carers relocate.
+            </p>
+          </div>
+        </div>
+      </Card>
+
+      <Card>
+        <SectionHeading
           title="The support they need"
           hint="Tick anything that would help. You can always change this later."
         />
@@ -144,10 +222,14 @@ export function CareProfileForm({
               name="careNeeds"
               value={c.value}
               label={c.label}
+              disabled={DISABLED_CARE_NEEDS.includes(c.value)}
               defaultChecked={profile?.care_needs.includes(c.value) ?? false}
             />
           ))}
         </div>
+        <p className="text-[13px] text-faint mt-2">
+          Greyed-out options aren&rsquo;t offered just yet.
+        </p>
         <h3 className="text-[13px] font-semibold uppercase tracking-wide text-faint mt-6 mb-2">
           When would help be most welcome?
         </h3>
@@ -159,24 +241,64 @@ export function CareProfileForm({
               value={c.value}
               label={c.label}
               defaultChecked={profile?.schedule.includes(c.value) ?? false}
+              onCheckedChange={
+                c.value === "live_in" ? setLiveIn : undefined
+              }
             />
           ))}
         </div>
+        {liveIn && (
+          <div className="mt-4 rounded-xl border border-hairline bg-sand/40 px-4 py-3.5">
+            <p className="text-[13.5px] text-muted mb-2.5">
+              Live-in carers stay in the home, so before we can match you
+              please confirm both of these:
+            </p>
+            <div className="space-y-2.5">
+              <label className="flex items-center gap-2.5 text-[15px] text-body cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="liveInRoom"
+                  defaultChecked={profile?.live_in_room ?? false}
+                  className="accent-green h-4 w-4"
+                />
+                There&rsquo;s a spare room for the carer
+              </label>
+              <label className="flex items-center gap-2.5 text-[15px] text-body cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="liveInBathroom"
+                  defaultChecked={profile?.live_in_bathroom ?? false}
+                  className="accent-green h-4 w-4"
+                />
+                The carer has bathroom access
+              </label>
+            </div>
+          </div>
+        )}
         <div className="mt-6">
-          <label htmlFor="languages" className={labelClass}>
-            Languages spoken at home
-          </label>
+          <span className={labelClass}>Languages spoken at home</span>
+          <div className="flex flex-wrap gap-2">
+            {LANGUAGES.map((lang) => (
+              <ChipCheckbox
+                key={lang}
+                name="languages"
+                value={lang}
+                label={lang}
+                defaultChecked={savedLanguages.picked.includes(lang)}
+              />
+            ))}
+          </div>
           <input
-            id="languages"
-            name="languages"
+            id="otherLanguages"
+            name="otherLanguages"
             type="text"
-            defaultValue={profile?.languages.join(", ") ?? ""}
-            placeholder="e.g. English, Polish"
-            className={inputClass}
+            defaultValue={savedLanguages.other}
+            placeholder="Any other languages, separated by commas"
+            aria-label="Other languages"
+            className={`${inputClass} mt-3`}
           />
           <p className="text-[13px] text-muted mt-1.5">
-            Separate with commas. A carer who shares a language can make all
-            the difference.
+            A carer who shares a language can make all the difference.
           </p>
         </div>
       </Card>

@@ -65,6 +65,30 @@ export async function reviewDocument(
 }
 
 /* ------------------------------------------------------------------ */
+/* Profile photos                                                      */
+/* ------------------------------------------------------------------ */
+
+export async function reviewPhoto(
+  photoId: string,
+  decision: "approve" | "reject",
+  _formData?: FormData
+) {
+  const { user } = await requireRole("admin");
+
+  const db = createAdminClient();
+  const { error } = await db
+    .from("profile_photos")
+    .update({
+      status: decision === "approve" ? "approved" : "rejected",
+      reviewed_by: user.id,
+      reviewed_at: new Date().toISOString(),
+    })
+    .eq("id", photoId);
+  if (error) throw new Error(`reviewPhoto: ${error.message}`);
+  revalidatePath(ADMIN_ROOT, "layout");
+}
+
+/* ------------------------------------------------------------------ */
 /* Professionals                                                       */
 /* ------------------------------------------------------------------ */
 

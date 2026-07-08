@@ -1,17 +1,21 @@
 import { requireRole } from "@/lib/auth-helpers";
 import { PageHeading, Card } from "@/components/ui";
 import { ProfileForm } from "./profile-form";
+import { PhotosCard } from "./photos-card";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProProfilePage() {
   const { supabase, user, profile } = await requireRole("professional");
 
-  const { data: pro } = await supabase
-    .from("professional_profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
+  const [{ data: pro }, { data: photos }] = await Promise.all([
+    supabase.from("professional_profiles").select("*").eq("id", user.id).single(),
+    supabase
+      .from("profile_photos")
+      .select("id, storage_path, status, position")
+      .eq("professional_id", user.id)
+      .order("position", { ascending: true }),
+  ]);
 
   if (!pro) {
     return (
@@ -30,6 +34,9 @@ export default async function ProProfilePage() {
         title="My profile"
         intro="This is what families see when they find you in search, so keep it warm, specific and up to date."
       />
+      <div className="mb-6">
+        <PhotosCard userId={user.id} photos={photos ?? []} />
+      </div>
       <ProfileForm
         pro={{
           kind: pro.kind,
@@ -37,6 +44,8 @@ export default async function ProProfilePage() {
           bio: pro.bio,
           location: pro.location,
           region: pro.region,
+          postcode: pro.postcode,
+          cooking_skill: pro.cooking_skill,
           years_experience: pro.years_experience,
           care_categories: pro.care_categories,
           availability_status: pro.availability_status,

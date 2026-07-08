@@ -59,6 +59,10 @@ type Pro = {
   tier: string;
   rateMin: number;
   rateMax: number;
+  postcode: string;
+  latitude: number;
+  longitude: number;
+  cooking: string;
   gender: "female" | "male";
   personality: string;
   comfortable: string[];
@@ -72,6 +76,7 @@ const PROS: Pro[] = [
     categories: ["live_in", "dementia", "companionship"],
     options: ["live_in", "long_term", "weekends"],
     languages: ["English", "Igbo"], interests: ["gardening","music","cooking"],
+    postcode: "M1 4ET", latitude: 53.4771, longitude: -2.236, cooking: "very_good",
     gender: "female", personality: "warm_chatty", comfortable: ["pets"],
     tier: "gold", rateMin: 1600, rateMax: 2200,
   },
@@ -82,6 +87,7 @@ const PROS: Pro[] = [
     categories: ["night", "respite", "complex"],
     options: ["night_shifts", "part_time", "temporary"],
     languages: ["English"], interests: ["football","history","current_affairs"],
+    postcode: "LS1 4AP", latitude: 53.7965, longitude: -1.5478, cooking: "basic",
     gender: "male", personality: "calm_quiet", comfortable: [],
     tier: "silver", rateMin: 1500, rateMax: 1900,
   },
@@ -92,6 +98,7 @@ const PROS: Pro[] = [
     categories: ["end_of_life", "dementia", "day"],
     options: ["full_time", "day_shifts", "long_term"],
     languages: ["English", "Portuguese"], interests: ["cooking","music","faith"],
+    postcode: "BS1 4DJ", latitude: 51.4536, longitude: -2.5872, cooking: "very_good",
     gender: "female", personality: "warm_chatty", comfortable: ["pets"],
     tier: "platinum", rateMin: 1800, rateMax: 2500,
   },
@@ -102,6 +109,7 @@ const PROS: Pro[] = [
     categories: ["companionship", "respite", "day"],
     options: ["part_time", "day_shifts", "weekends"],
     languages: ["English"], interests: ["cards_games","books","walking"],
+    postcode: "NR1 3QN", latitude: 52.6285, longitude: 1.2989, cooking: "good",
     gender: "male", personality: "calm_quiet", comfortable: ["pets"],
     tier: "bronze", rateMin: 1400, rateMax: 1700,
   },
@@ -112,6 +120,7 @@ const PROS: Pro[] = [
     categories: ["palliative_nurse", "complex_nurse", "general_nurse"],
     options: ["full_time", "day_shifts", "long_term"],
     languages: ["English", "French"], interests: ["music","walking"],
+    postcode: "B1 1BB", latitude: 52.4796, longitude: -1.9026, cooking: "good",
     gender: "female", personality: "adaptable", comfortable: [],
     tier: "platinum", rateMin: 2800, rateMax: 3800,
   },
@@ -122,6 +131,7 @@ const PROS: Pro[] = [
     categories: ["community_nurse", "dementia_nurse", "mental_health_nurse"],
     options: ["part_time", "day_shifts", "weekends"],
     languages: ["English", "Czech"], interests: ["books","animals","walking"],
+    postcode: "SW1V 3JD", latitude: 51.4941, longitude: -0.1323, cooking: "basic",
     gender: "female", personality: "warm_chatty", comfortable: ["pets"],
     tier: "gold", rateMin: 2600, rateMax: 3400,
   },
@@ -166,6 +176,10 @@ async function main() {
       personality_style: p.personality,
       comfortable_with: p.comfortable,
       can_drive: true,
+      postcode: p.postcode,
+      latitude: p.latitude,
+      longitude: p.longitude,
+      cooking_skill: p.cooking,
       rtw_route: "british_irish_passport",
       contract_version: "2026-07-draft-1",
       contract_accepted_at: new Date().toISOString(),

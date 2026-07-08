@@ -24,8 +24,11 @@ import {
 import {
   CARER_PERSONALITY_OPTIONS,
   COMFORTABLE_WITH_OPTIONS,
+  DISABLED_CARE_CATEGORIES,
   INTEREST_CHIPS,
 } from "@/lib/matching";
+import { geocodePostcode } from "@/lib/geocode";
+import { combineLanguages } from "@/lib/profile-fields";
 
 export type ProActionState = { error?: string; success?: string };
 
@@ -48,13 +51,6 @@ function poundsToPence(raw: string): number | null {
   const pounds = Number(raw);
   if (!Number.isFinite(pounds) || pounds < 0) return null;
   return Math.round(pounds * 100);
-}
-
-function csvToArray(raw: string): string[] {
-  return raw
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
 }
 
 /* ------------------------------------------------------------------ */
@@ -81,7 +77,9 @@ export async function saveProfessionalProfile(
   const careCategories = formData
     .getAll("care_categories")
     .map((v) => v as CareCategory)
-    .filter((v) => allowedCategories.has(v));
+    .filter(
+      (v) => allowedCategories.has(v) && !DISABLED_CARE_CATEGORIES.includes(v)
+    );
 
   const allowedOptions = new Set(AVAILABILITY_OPTIONS.map((o) => o.value));
   const availabilityOptions = formData
@@ -132,6 +130,29 @@ export async function saveProfessionalProfile(
   const genderRaw = str(formData, "gender");
   const gender = genderRaw === "female" || genderRaw === "male" ? genderRaw : null;
 
+  const cookingRaw = str(formData, "cooking_skill");
+  const cookingSkill = ["basic", "good", "very_good"].includes(cookingRaw)
+    ? cookingRaw
+    : null;
+
+  // Geocode server-side so search never does it at read time. An empty
+  // postcode clears the stored location.
+  const postcodeRaw = str(formData, "postcode");
+  let postcode: string | null = null;
+  let latitude: number | null = null;
+  let longitude: number | null = null;
+  if (postcodeRaw) {
+    const geo = await geocodePostcode(postcodeRaw);
+    if (!geo) {
+      return {
+        error: "We couldn't find that postcode. Please check it and try again.",
+      };
+    }
+    postcode = geo.postcode;
+    latitude = geo.latitude;
+    longitude = geo.longitude;
+  }
+
   const { error } = await supabase
     .from("professional_profiles")
     .update({
@@ -139,16 +160,23 @@ export async function saveProfessionalProfile(
       bio: str(formData, "bio"),
       location: str(formData, "location"),
       region: str(formData, "region"),
+      postcode,
+      latitude,
+      longitude,
       years_experience: yearsExperience,
       care_categories: careCategories,
       availability_status: availabilityStatus as AvailabilityStatus,
       availability_options: availabilityOptions,
       hourly_rate_min: rateMin,
       hourly_rate_max: rateMax,
-      languages: csvToArray(str(formData, "languages")),
+      languages: combineLanguages(
+        formData.getAll("languages"),
+        formData.get("other_languages")
+      ),
       interests,
       gender,
       personality_style: personalityStyle,
+      cooking_skill: cookingSkill,
       comfortable_with: comfortableWith,
       photo_url: str(formData, "photo_url") || null,
       intro_video_url: str(formData, "intro_video_url") || null,
