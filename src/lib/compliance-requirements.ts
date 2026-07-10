@@ -113,6 +113,9 @@ export const REQUIRED_DOCS = {
 /** Current working-agreement version issued to professionals. */
 export const CONTRACT_VERSION = "2026-07-draft-1";
 
+/** Reg 36 early-start acknowledgment wording version (recorded per booking). */
+export const CANCELLATION_ACK_VERSION = "2026-07-r36-1";
+
 /** Current T&Cs versions recorded at signup acceptance. */
 export const TERMS_VERSIONS = {
   client_terms: "2026-07-draft-1",

@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { brand } from "@/lib/brand";
-import { COMMISSION, bookingAmounts, formatGBP } from "@/lib/pricing";
+import {
+  CARER_KEEPS_PCT,
+  COMMISSION,
+  bookingAmounts,
+  formatGBP,
+} from "@/lib/pricing";
 
 export const metadata: Metadata = {
   title: "How it works",
@@ -131,8 +136,9 @@ export default function HowItWorksPage() {
               </h3>
               <p className="text-[15.5px] leading-[1.6] text-sage-light">
                 Keep booking the same carer for as long as you need them, from
-                a weekly visit to live-in care. Your carer keeps 85% of the
-                rate they set and is paid quickly after each visit, so the
+                a weekly visit to live-in care. Your carer keeps{" "}
+                {CARER_KEEPS_PCT}% of the rate they set and is paid quickly
+                after each visit, so the
                 relationship stays strong on both sides.
               </p>
             </div>
@@ -216,8 +222,9 @@ export default function HowItWorksPage() {
                 flexibly, no long contracts or tie-ins
               </li>
               <li className="flex gap-3 text-[15.5px] text-[#3D4A45]">
-                <span className="text-[17px] text-green">✓</span>Carers keep
-                85% of the rate they set, paid quickly after each visit
+                <span className="text-[17px] text-green">✓</span>Carers keep{" "}
+                {CARER_KEEPS_PCT}% of the rate they set, paid quickly after
+                each visit
               </li>
             </ul>
           </div>

@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { brand } from "@/lib/brand";
-import { COMMISSION, bookingAmounts, formatGBP } from "@/lib/pricing";
+import {
+  CARER_KEEPS_PCT,
+  COMMISSION,
+  bookingAmounts,
+  formatGBP,
+} from "@/lib/pricing";
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
@@ -148,7 +153,7 @@ export default function HomePage() {
             Now welcoming founding families across the UK
           </span>
           <div className="flex flex-wrap items-center gap-9 text-[15px] font-semibold text-muted">
-            <span>Carers keep 85% of their rate</span>
+            <span>Carers keep {CARER_KEEPS_PCT}% of their rate</span>
             <span className="hidden h-[18px] w-px bg-hairline-strong sm:block" />
             <span>All-in price on every profile</span>
             <span className="hidden h-[18px] w-px bg-hairline-strong sm:block" />
@@ -268,7 +273,7 @@ export default function HomePage() {
             </div>
             <div className="flex aspect-square flex-col justify-center rounded-[18px] bg-green p-5">
               <span className="font-serif text-[40px] leading-none text-cream">
-                85%
+                {CARER_KEEPS_PCT}%
               </span>
               <span className="mt-[6px] text-[13px] leading-[1.4] text-sage-light">
                 of every booking goes to your carer
@@ -398,7 +403,8 @@ export default function HomePage() {
             </h3>
             <p className="mb-[26px] text-[15.5px] leading-[1.6] text-body">
               Choose your clients, set your rates and work flexibly. No
-              joining fees, and you keep 85% of the rate you set, paid quickly
+              joining fees, and you keep {CARER_KEEPS_PCT}% of the rate you
+              set, paid quickly
               after every visit. Agencies typically keep half.
             </p>
             <Link
@@ -460,7 +466,7 @@ export default function HomePage() {
             />
             <FaqItem
               question="What does it cost, and are there hidden fees?"
-              answer={`No hidden fees. Creating an account, browsing full profiles and meet & greets are all free. You only pay when you book care: your carer’s hourly rate plus a ${COMMISSION.clientPct}% platform fee, paid securely by card. So a carer whose rate is ${formatGBP(exampleRate)}/hr costs ${formatGBP(example.totalAmount)}/hr all-in, and they keep ${formatGBP(example.carerNetAmount)} of it. No joining fees, no subscriptions, no unlock fees, and you can cancel flexibly.`}
+              answer={`No hidden fees. Creating an account, browsing full profiles and meet & greets are all free. You only pay when you book care: your carer’s hourly rate plus a ${COMMISSION.clientPct}% platform fee, paid securely by card. So you'd pay ${formatGBP(example.totalAmount)}/hr all-in for a carer whose rate is ${formatGBP(exampleRate)}/hr, and they keep ${formatGBP(example.carerNetAmount)} of it. No joining fees, no subscriptions, no unlock fees, and you can cancel flexibly.`}
             />
             <FaqItem
               question="What does ‘matched on what matters’ actually mean?"

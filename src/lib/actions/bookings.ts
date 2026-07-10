@@ -133,7 +133,16 @@ export async function payBooking(formData: FormData) {
   const { user } = await requireUser();
   const bookingId = formData.get("bookingId") as string;
   if (!bookingId) return;
-  const url = await startBookingCheckout(user.id, bookingId);
+  const earlyStartAck = formData.get("earlyStart") === "on";
+  let url: string;
+  try {
+    url = await startBookingCheckout(user.id, bookingId, earlyStartAck);
+  } catch (e) {
+    if (e instanceof Error && e.message === "early_start_ack_required") {
+      redirect("/app/bookings?ack=required");
+    }
+    throw e;
+  }
   redirect(url);
 }
 

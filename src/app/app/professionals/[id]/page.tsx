@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/auth-helpers";
-import { COMMISSION, bookingAmounts, formatGBP } from "@/lib/pricing";
+import {
+  CARER_KEEPS_PCT,
+  CLIENT_FEE_PCT,
+  allInHourly,
+  bookingAmounts,
+  formatGBP,
+} from "@/lib/pricing";
 import {
   PageHeading,
   Card,
@@ -179,12 +185,21 @@ export default async function ProfessionalProfilePage({
       : undefined;
 
   const hasRates = pro.hourly_rate_min != null || pro.hourly_rate_max != null;
+  const isRateRange =
+    pro.hourly_rate_min != null &&
+    pro.hourly_rate_max != null &&
+    pro.hourly_rate_min !== pro.hourly_rate_max;
   const rateText = hasRates
-    ? pro.hourly_rate_min != null &&
-      pro.hourly_rate_max != null &&
-      pro.hourly_rate_min !== pro.hourly_rate_max
-      ? `${formatGBP(pro.hourly_rate_min)}–${formatGBP(pro.hourly_rate_max)}/hr`
+    ? isRateRange
+      ? `${formatGBP(pro.hourly_rate_min!)}–${formatGBP(pro.hourly_rate_max!)}/hr`
       : `${formatGBP(pro.hourly_rate_min ?? pro.hourly_rate_max!)}/hr`
+    : "Rate on request";
+  // The headline price a client sees is fee-inclusive (all-in), with the
+  // carer's own rate as secondary context.
+  const allInText = hasRates
+    ? isRateRange
+      ? `${formatGBP(allInHourly(pro.hourly_rate_min!))}–${formatGBP(allInHourly(pro.hourly_rate_max!))}/hr all-in`
+      : `${formatGBP(allInHourly(pro.hourly_rate_min ?? pro.hourly_rate_max!))}/hr all-in`
     : "Rate on request";
 
   // Worked example for the fee explainer: a 3-hour visit at their rate.
@@ -334,9 +349,15 @@ export default async function ProfessionalProfilePage({
               </div>
               <div>
                 <h3 className="text-[13px] font-semibold uppercase tracking-wide text-faint mb-2">
-                  Hourly rate
+                  Hourly price
                 </h3>
-                <p className="text-[15px] text-body">{rateText}</p>
+                <p className="text-[15px] text-body">{allInText}</p>
+                {hasRates && (
+                  <p className="text-[13px] text-muted mt-1">
+                    Your carer&apos;s rate: {rateText}. The all-in price
+                    includes our {CLIENT_FEE_PCT}% platform fee.
+                  </p>
+                )}
               </div>
             </div>
           </Card>
@@ -401,12 +422,13 @@ export default async function ProfessionalProfilePage({
             {bookingRate != null && example ? (
               <>
                 <p className="text-[14px] text-muted mb-4">
-                  {firstName}&apos;s rate is{" "}
+                  You pay{" "}
                   <span className="font-semibold text-ink">
-                    {formatGBP(bookingRate)}/hr
+                    {formatGBP(allInHourly(bookingRate))}/hr all-in
                   </span>
-                  . You pay the rate plus a {COMMISSION.clientPct}% platform
-                  fee, and that&apos;s everything.
+                  : {firstName}&apos;s rate of {formatGBP(bookingRate)}/hr
+                  plus our {CLIENT_FEE_PCT}% platform fee, and that&apos;s
+                  everything.
                 </p>
                 <div className="bg-sand/60 rounded-xl px-4 py-3 mb-5 text-[13.5px] text-body">
                   <p className="font-semibold text-ink mb-1">
@@ -421,7 +443,7 @@ export default async function ProfessionalProfilePage({
                     total.
                   </p>
                   <p className="mt-1 text-muted">
-                    Your carer keeps 85% of their rate (
+                    Your carer keeps {CARER_KEEPS_PCT}% of their rate (
                     {formatGBP(example.carerNetAmount)} for this visit).
                   </p>
                 </div>

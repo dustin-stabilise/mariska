@@ -207,6 +207,36 @@ A light, skippable questionnaire powers personalised matching:
   Stripe-powered account (they onboard once from their dashboard); payouts
   follow completed visits. Go-live is configuration, not rebuilding.
 
+## 8a. Regulatory product guardrails (from verified legal research, 2026-07)
+
+Grounded in `Docs/research/legal/00-overview.md`. These bind future feature
+work until the solicitor says otherwise:
+
+- **Fee structure is frozen pending the flip decision:** the 15% carer-side
+  commission is likely a prohibited work-seeker fee (EAA 1973 s.6); the
+  probable cure is a single ~21% client-side fee with carers keeping 100% of
+  their rate. All percentages in copy now derive from the pricing config so
+  the flip is a one-line change. Do not build new carer-side fee features.
+- **Payment rules:** client money never touches company bank accounts, no
+  cash handling, all refunds flow back through Stripe, no escrow in v1.
+  Payment-flow changes are evaluated against four regimes together: EAA
+  employment-business definition, s.44 ITEPA deemed-employer, CQC
+  ongoing-role, FCA perimeter (currently LOW via Stripe Connect).
+- **Feature red lines (CQC ongoing-role + employment status):**
+  replacement carers are client-initiated only (never auto-assigned), no
+  platform-managed rotas, no care monitoring/supervision features, ratings
+  stay informational (never gate work allocation), no penalties for
+  declining work or slow responses, carers always set their own rates.
+- **Copy discipline:** we are an introduction service with payment
+  administration; never "we manage/supervise your care". Vetting claims must
+  be exactly true because they bind contractually.
+- **Reg 36 capture (built):** bookings starting within 14 days of payment
+  record the client's express early-start request and acknowledgment
+  (timestamped, wording-versioned) at checkout.
+- **Circumvention fee shape** (for the solicitor draft): 6-12 months from
+  last paid booking, quantum justified by booking history, published buy-out,
+  shown prominently at booking time.
+
 ## 9. Communications
 
 Email notifications exist for: welcome (both audiences), meet-and-greet

@@ -14,6 +14,7 @@ import {
   type MatchResult,
 } from "@/lib/matching";
 import { RADIUS_MILES_OPTIONS } from "@/lib/profile-fields";
+import { allInHourly, formatGBP } from "@/lib/pricing";
 
 type CareCategory = Database["public"]["Enums"]["care_category"];
 type AvailabilityStatus = Database["public"]["Enums"]["availability_status"];
@@ -397,6 +398,18 @@ export default async function SearchPage({
                       </span>
                     )}
                   </p>
+
+                  {(p.hourly_rate_min ?? p.hourly_rate_max) != null && (
+                    <p className="text-[13.5px] text-muted mt-1">
+                      from{" "}
+                      {formatGBP(
+                        allInHourly(
+                          p.hourly_rate_min ?? p.hourly_rate_max!
+                        )
+                      )}
+                      /hr all-in
+                    </p>
+                  )}
 
                   {(p.care_categories?.length ?? 0) > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-3">

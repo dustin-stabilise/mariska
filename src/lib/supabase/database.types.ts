@@ -36,6 +36,7 @@ export type Database = {
     Tables: {
       bookings: {
         Row: {
+          cancellation_ack_version: string | null
           cancelled_reason: string | null
           care_amount: number
           carer_fee_amount: number
@@ -48,6 +49,7 @@ export type Database = {
           completed_at: string | null
           confirmed_at: string | null
           created_at: string
+          early_start_requested_at: string | null
           ends_at: string
           hourly_rate: number
           hours: number
@@ -60,6 +62,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cancellation_ack_version?: string | null
           cancelled_reason?: string | null
           care_amount: number
           carer_fee_amount: number
@@ -72,6 +75,7 @@ export type Database = {
           completed_at?: string | null
           confirmed_at?: string | null
           created_at?: string
+          early_start_requested_at?: string | null
           ends_at: string
           hourly_rate: number
           hours: number
@@ -84,6 +88,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cancellation_ack_version?: string | null
           cancelled_reason?: string | null
           care_amount?: number
           carer_fee_amount?: number
@@ -96,6 +101,7 @@ export type Database = {
           completed_at?: string | null
           confirmed_at?: string | null
           created_at?: string
+          early_start_requested_at?: string | null
           ends_at?: string
           hourly_rate?: number
           hours?: number
@@ -1264,6 +1270,7 @@ export type Database = {
       accept_booking: {
         Args: { p_booking_id: string }
         Returns: {
+          cancellation_ack_version: string | null
           cancelled_reason: string | null
           care_amount: number
           carer_fee_amount: number
@@ -1276,6 +1283,7 @@ export type Database = {
           completed_at: string | null
           confirmed_at: string | null
           created_at: string
+          early_start_requested_at: string | null
           ends_at: string
           hourly_rate: number
           hours: number
@@ -1354,6 +1362,7 @@ export type Database = {
       cancel_booking: {
         Args: { p_booking_id: string; p_reason?: string }
         Returns: {
+          cancellation_ack_version: string | null
           cancelled_reason: string | null
           care_amount: number
           carer_fee_amount: number
@@ -1366,6 +1375,7 @@ export type Database = {
           completed_at: string | null
           confirmed_at: string | null
           created_at: string
+          early_start_requested_at: string | null
           ends_at: string
           hourly_rate: number
           hours: number

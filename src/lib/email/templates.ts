@@ -1,5 +1,5 @@
 import { brand } from "@/lib/brand";
-import { formatGBP } from "@/lib/pricing";
+import { CARER_KEEPS_PCT, COMMISSION, formatGBP } from "@/lib/pricing";
 
 /**
  * Email templates. Plain, warm, brand-toned HTML with no external assets
@@ -55,7 +55,7 @@ export function welcomeProfessionalEmail(firstName: string) {
     html: layout(
       `Welcome, ${firstName}`,
       `<p>Thanks for applying to join ${brand.name}. The next step is your compliance documents: upload your DBS, right to work, references and training certificates from your dashboard, and we'll review them quickly.</p>
-       <p>Once you're verified and we've had a short interview, your profile goes live. You set your own rate and keep 85% of it, paid through the platform.</p>
+       <p>Once you're verified and we've had a short interview, your profile goes live. You set your own rate and keep ${CARER_KEEPS_PCT}% of it, paid through the platform.</p>
        ${button(appLink("/app/pro/documents"), "Upload your documents")}`
     ),
   };
@@ -101,7 +101,7 @@ export function bookingProposedEmail(hours: number, carerNet: number) {
     subject: `New booking request on ${brand.name}`,
     html: layout(
       "You have a new booking request",
-      `<p>A client has requested a booking of <strong>${hours} hours</strong>. You would receive <strong>${formatGBP(carerNet)}</strong> for this visit (your rate minus the 15% platform fee).</p>
+      `<p>A client has requested a booking of <strong>${hours} hours</strong>. You would receive <strong>${formatGBP(carerNet)}</strong> for this visit (your rate minus the ${COMMISSION.carerPct}% platform fee).</p>
        ${button(appLink("/app/pro/bookings"), "Respond to the request")}`
     ),
   };

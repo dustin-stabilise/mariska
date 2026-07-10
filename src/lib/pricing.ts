@@ -13,6 +13,20 @@ export const COMMISSION = {
   clientPct: 6,
 } as const;
 
+/**
+ * Display helpers derived from COMMISSION so every percentage in copy moves
+ * with the config. The legal research (Docs/research/legal/00-overview.md)
+ * flagged a likely fee flip (carer-side 15% -> single client-side fee);
+ * when that decision lands, changing COMMISSION must update ALL copy.
+ */
+export const CARER_KEEPS_PCT = 100 - COMMISSION.carerPct;
+export const CLIENT_FEE_PCT = COMMISSION.clientPct;
+
+/** All-in hourly price a client pays for a carer's rate (pence -> pence). */
+export function allInHourly(ratePence: number): number {
+  return Math.round(ratePence * (1 + COMMISSION.clientPct / 100));
+}
+
 export function bookingAmounts(hours: number, hourlyRate: number) {
   const careAmount = Math.round(hours * hourlyRate);
   const clientFeeAmount = Math.round((careAmount * COMMISSION.clientPct) / 100);

@@ -145,12 +145,13 @@ export default async function BookingsPage({
                     </p>
 
                     <p className="text-[13.5px] text-muted mt-1.5">
-                      {formatHours(b.hours)} × {formatGBP(b.hourly_rate)}/hr ={" "}
-                      {formatGBP(b.care_amount)} + {b.client_fee_pct}% fee (
-                      {formatGBP(b.client_fee_amount)}) ={" "}
                       <span className="font-semibold text-ink">
                         {formatGBP(b.total_amount)}
-                      </span>
+                      </span>{" "}
+                      total: {formatHours(b.hours)} ×{" "}
+                      {formatGBP(b.hourly_rate)}/hr ={" "}
+                      {formatGBP(b.care_amount)}, plus the {b.client_fee_pct}%
+                      fee ({formatGBP(b.client_fee_amount)})
                     </p>
 
                     {b.status === "proposed" && (
@@ -192,8 +193,25 @@ export default async function BookingsPage({
 
                   <div className="flex flex-col items-stretch gap-2">
                     {b.status === "confirmed" && !isPaid && (
-                      <form action={payBooking}>
+                      <form action={payBooking} className="flex flex-col gap-2 max-w-[260px]">
                         <input type="hidden" name="bookingId" value={b.id} />
+                        {new Date(b.starts_at).getTime() - Date.now() <
+                          14 * 86_400_000 && (
+                          <label className="flex items-start gap-2 text-[12.5px] leading-[1.45] text-muted">
+                            <input
+                              type="checkbox"
+                              name="earlyStart"
+                              required
+                              className="mt-0.5 h-3.5 w-3.5 accent-[#3F5E54]"
+                            />
+                            <span>
+                              I ask for this visit to go ahead within the
+                              14-day cancellation period, and understand that
+                              once it has fully taken place I lose the right
+                              to cancel this booking.
+                            </span>
+                          </label>
+                        )}
                         <Button type="submit" className="w-full">
                           Pay {formatGBP(b.total_amount)}
                         </Button>

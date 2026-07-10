@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { brand } from "@/lib/brand";
-import { PRICING, formatGBP } from "@/lib/pricing";
+import { CARER_KEEPS_PCT, PRICING, formatGBP } from "@/lib/pricing";
 
 export const metadata: Metadata = {
   title: "For carers & nurses",
-  description: `Join ${brand.name}: free registration, set your own rates, keep 85% of every hour you work and choose the clients you work with.`,
+  description: `Join ${brand.name}: free registration, set your own rates, keep ${CARER_KEEPS_PCT}% of every hour you work and choose the clients you work with.`,
 };
 
 function BenefitCard({
@@ -65,7 +65,8 @@ export default function ForCarersPage() {
           <p className="mb-8 max-w-[480px] text-[19px] leading-[1.6] text-body">
             Choose your clients, set your own rates and work flexibly around
             your life. Joining is free, clients book you through the platform,
-            and you keep 85% of the rate you set. Agencies typically keep
+            and you keep {CARER_KEEPS_PCT}% of the rate you set. Agencies
+            typically keep
             50–60%.
           </p>
           <div className="mb-8 flex flex-wrap gap-[14px]">
@@ -85,7 +86,7 @@ export default function ForCarersPage() {
           <div className="flex flex-wrap gap-[26px] text-sm font-semibold text-muted">
             <span className="flex items-center gap-2">
               <span className="text-base text-green">✓</span>Set your rate,
-              keep 85%
+              keep {CARER_KEEPS_PCT}%
             </span>
             <span className="flex items-center gap-2">
               <span className="text-base text-green">✓</span>You choose your
@@ -103,7 +104,7 @@ export default function ForCarersPage() {
           </div>
           <div className="absolute -bottom-[26px] -right-[22px] max-w-[210px] rounded-[18px] bg-green px-[22px] py-5 shadow-[0_18px_40px_-22px_rgba(36,53,48,0.5)]">
             <div className="font-serif text-[34px] leading-none text-tan">
-              85%
+              {CARER_KEEPS_PCT}%
             </div>
             <div className="mt-[6px] text-[13.5px] leading-[1.45] text-sage-light">
               of the rate you set is yours, paid quickly after every visit
@@ -125,8 +126,8 @@ export default function ForCarersPage() {
         </div>
         <div className="grid grid-cols-1 gap-[18px] sm:grid-cols-2 lg:grid-cols-3">
           <BenefitCard title="Set your own rates">
-            You decide what your skills and experience are worth, and keep 85%
-            of every hour. Agencies typically keep half.
+            You decide what your skills and experience are worth, and keep{" "}
+            {CARER_KEEPS_PCT}% of every hour. Agencies typically keep half.
           </BenefitCard>
           <BenefitCard title="Choose your clients">
             Pick the people, the type of care and the hours that suit you.

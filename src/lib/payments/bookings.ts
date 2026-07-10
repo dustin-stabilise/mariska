@@ -86,8 +86,14 @@ export async function createBookingProposal(opts: {
   return booking;
 }
 
-/** Client pays a confirmed booking. Returns a redirect URL. */
-export async function startBookingCheckout(userId: string, bookingId: string): Promise<string> {
+/** Client pays a confirmed booking. Returns a redirect URL.
+ * earlyStartAck: reg 36 CCR 2013 express request + acknowledgment, required
+ * when the visit begins inside the 14-day cancellation window. */
+export async function startBookingCheckout(
+  userId: string,
+  bookingId: string,
+  earlyStartAck = false
+): Promise<string> {
   const db = createAdminClient();
 
   const { data: booking, error } = await db
@@ -98,6 +104,23 @@ export async function startBookingCheckout(userId: string, bookingId: string): P
     .single();
   if (error || !booking) throw new Error("booking_not_found");
   if (booking.status !== "confirmed") throw new Error("booking_not_payable");
+
+  // Reg 36: starting within 14 days of payment requires the client's express
+  // request and acknowledgment, recorded with a wording version.
+  const fourteenDays = 14 * 86_400_000;
+  const startsWithinWindow =
+    new Date(booking.starts_at).getTime() - Date.now() < fourteenDays;
+  if (startsWithinWindow && !earlyStartAck) throw new Error("early_start_ack_required");
+  if (startsWithinWindow && !booking.early_start_requested_at) {
+    const { CANCELLATION_ACK_VERSION } = await import("@/lib/compliance-requirements");
+    await db
+      .from("bookings")
+      .update({
+        early_start_requested_at: new Date().toISOString(),
+        cancellation_ack_version: CANCELLATION_ACK_VERSION,
+      })
+      .eq("id", bookingId);
+  }
   if (booking.payment_id) {
     const { data: existing } = await db
       .from("payments")

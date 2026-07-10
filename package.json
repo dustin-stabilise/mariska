@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx scripts/seed.ts",
-    "verify": "tsx scripts/verify.mjs"
+    "verify": "tsx --conditions=react-server scripts/verify.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

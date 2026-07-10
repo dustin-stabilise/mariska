@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { signUpProfessional } from "@/lib/actions/auth";
+import { CARER_KEEPS_PCT } from "@/lib/pricing";
 import { AuthForm, Field, SelectField, TermsCheckbox } from "@/components/auth-form";
 
 export const metadata = { title: "Join as a carer or nurse" };
@@ -12,7 +13,8 @@ export default function JoinPage() {
       </h1>
       <p className="text-muted text-[15px] mb-7">
         Apply in minutes. We&rsquo;ll verify your documents and interview you
-        before your profile goes live. You set your rate and keep 85% of it.
+        before your profile goes live. You set your rate and keep{" "}
+        {CARER_KEEPS_PCT}% of it.
       </p>
       <AuthForm
         action={signUpProfessional}

@@ -503,5 +503,45 @@ console.log("\n— phase 4: staff notes —");
   await svc.from("staff_notes").delete().eq("note", "verify note");
 }
 
+// ───────────────────────────────────────────────────────────────────────────
+// No-regrets legal changes: reg 36 capture + config-derived pricing
+// ───────────────────────────────────────────────────────────────────────────
+console.log("\n— reg 36 + fee-inclusive pricing —");
+{
+  const svc = createClient(URL_, process.env.SUPABASE_SECRET_KEY, { auth: { persistSession: false } });
+  const client = await login("client@example.com");
+  const grace = await login("grace.carer@example.com");
+  const { startBookingCheckout } = await import("../src/lib/payments/bookings");
+  const money = { hours: 2, hourly_rate: 1600, client_fee_pct: 6, carer_fee_pct: 15,
+    care_amount: 3200, client_fee_amount: 192, total_amount: 3392, carer_fee_amount: 480, carer_net_amount: 2720 };
+
+  // booking starting in 3 days (inside the 14-day window)
+  const s = new Date(Date.now() + 3 * 86400000); s.setHours(9, 0, 0, 0);
+  const e = new Date(s); e.setHours(11);
+  const { data: bk } = await svc.from("bookings").insert({
+    client_id: client.session.user.id, professional_id: grace.session.user.id,
+    status: "confirmed", starts_at: s.toISOString(), ends_at: e.toISOString(), ...money,
+  }).select().single();
+
+  let blocked = false;
+  try { await startBookingCheckout(client.session.user.id, bk.id, false); }
+  catch (err) { blocked = err.message === "early_start_ack_required"; }
+  check("payment blocked without early-start acknowledgment", blocked);
+
+  const url = await startBookingCheckout(client.session.user.id, bk.id, true);
+  check("payment proceeds with acknowledgment (bypass)", url.includes("test-paid"));
+  const { data: after } = await svc.from("bookings").select("early_start_requested_at, cancellation_ack_version").eq("id", bk.id).single();
+  check("acknowledgment recorded with version", after.early_start_requested_at != null && after.cancellation_ack_version != null, JSON.stringify(after));
+
+  await svc.from("bookings").delete().eq("id", bk.id);
+
+  // pricing copy derives from config
+  const { CARER_KEEPS_PCT, allInHourly, COMMISSION } = await import("../src/lib/pricing");
+  check("CARER_KEEPS_PCT derives from config", CARER_KEEPS_PCT === 100 - COMMISSION.carerPct);
+  check("allInHourly applies the client fee", allInHourly(2000) === 2120);
+  const home = await fetch(APP + "/").then((r) => r.text());
+  check("home page shows derived keep percentage", new RegExp(CARER_KEEPS_PCT + "(<!-- -->)?%").test(home));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
