@@ -27,8 +27,15 @@
 
 1. Commit (no Co-Authored-By trailers, explicit staging) and push to GitHub
    for history/sync: `git push origin main`.
-2. Apply any new migration to production (see Prerequisites).
-3. Deploy: `vercel deploy --prod --yes`
+2. Apply any new migration to production (see Prerequisites) and VERIFY the
+   schema change landed (query the new column/table) before going further.
+3. Deploy: `vercel deploy --prod --yes`. **Chain it so a migration failure
+   halts the release**: run migration and deploy as `migrate && deploy`, or
+   as separate steps where the deploy is only issued after the migration
+   verification prints success. Never let the deploy run when the migration
+   step errored (this happened 2026-07-10: an expired Supabase token 401'd
+   the migration mid-sequence and the deploy shipped anyway, leaving
+   production code referencing columns that didn't exist).
 4. Wait for `"readyState": "READY"` and the
    `Aliased: https://mariska-gray.vercel.app` line in the output.
 
